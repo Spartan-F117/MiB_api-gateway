@@ -53,6 +53,49 @@ paths:
           description: Redirects to the correct profile page, depending on the type of the user
         202:
           description: if try to login again, redirects to new page with comment.
+  /create_user:
+    get:
+      tags: [ Users ]
+      summary: shows the create_user page
+      responses:
+        200:
+          description: show the form with the required fields to create a user
+        203:
+          description: You are currently logged in, you have to <a href=/logout>logout</a> first
+    post:
+      tags: [ Users ]
+      summary: create user by entering the user data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                firstname:
+                  type: string
+                lastname:
+                  type: string
+                password:
+                  type: string
+                date_of_birth:
+                  type: string
+                nickname:
+                  type: string
+                location:
+                  type: string
+      responses:
+        201:
+          description: user created successfully, redirects to users page
+        203:
+          description: redirects to create_user page (if email is already registered, or nickname is not available)
+
+
+
+
+
   /users:
     get:
       tags: [Users]
@@ -147,48 +190,7 @@ paths:
           description: redirects to mailbox page if user dose not have enough lottery points
         400:
           description: if user is not logged, redirects to login page
-  /create_user:
-    get:
-      tags: [ Users ]
-      summary: shows the create_user page
-      responses:
-        200:
-          description: show the form with the required fields to create a user
-        203:
-          description: You are currently logged in, you have to <a href=/logout>logout</a> first
-    post:
-      tags: [Users]
-      summary: create user by entering the user data
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                firstname:
-                  type: string
-                lastname:
-                  type: string
-                password:
-                  type: string
-                date_of_birth:
-                  type: string
-                nickname:
-                  type: string
-                location:
-                  type: string
-                operation: # Submit (Forwards the request to create user)
-                  type: string
-              required:
-                - operation
-      responses:
-        201:
-          description: user created successfully, redirects to users page
-        203:
-          description: redirects to create_user page (if email is already registered, or nickname is not available)
+
 
   #Filippo
   /deleteAccount:

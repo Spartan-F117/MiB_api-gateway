@@ -1,9 +1,5 @@
-
-from flask import Blueprint, render_template, redirect, url_for
-
-from flask import Blueprint, render_template, flash
-import requests
-from flask_login import LoginManager, current_user
+from flask import redirect
+from flask import Blueprint
 from mib import app
 
 users = Blueprint('users', __name__)

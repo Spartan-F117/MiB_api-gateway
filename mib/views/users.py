@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, flash, redirect
 import requests
 from flask_login import LoginManager, current_user
 from mib import app
+from mib.forms import UserForm
 
 users = Blueprint('users', __name__)
 
@@ -10,18 +11,68 @@ REQUESTS_TIMEOUT_SECONDS = 60
 USERS_ENDPOINT = app.config['USERS_MS_URL']
 MESSAGE_ENDPOINT = ""
 
+
+@users.route('/create_user/', methods=['POST', 'GET'])
+def create_user():
+    '''
+        Create a user
+    '''
+
+    form = UserForm()
+    if not (current_user is not None and hasattr(current_user, 'id')):  # check if the user is logged
+        if form.is_submitted():  # take information from the Form
+            email = form.data['email']
+            firstname = form.data['firstname']
+            lastname = form.data['lastname']
+            password = form.data['password']
+            date_of_birth = str(form.data['date_of_birth'])
+            nickname = form.data['nickname']
+            location = form.data['location']
+
+            payload = dict(email=email, password=password, firstname=firstname,
+                           lastname=lastname, date_of_birth=date_of_birth,
+                           nickname=nickname, location=location)
+
+            try:
+                print('trying creating user....')
+                response = requests.post(USERS_ENDPOINT + '/create_user',
+                                         json=payload,
+                                         timeout=REQUESTS_TIMEOUT_SECONDS
+                                         )
+                print('received response for create user....')
+                json_response = response.json()
+
+                status = response.status_code
+
+                # it's ok.. user created
+                if status == 201:
+                    print("user created")
+                    return redirect("/login")
+                # invalid creation
+                elif status == 203:
+                    print("Invalid credential")
+                    flash("invalid credential")
+                    return render_template('create_user.html', form=form)
+            except Exception as e:
+                print(e)
+                return "HTTP timeout"
+        return render_template('create_user.html', form=form)
+    else:
+        return "You are currently logged in, you have to <a href=/logout>logout</a> first"
+
+
 # #This route is to see the mailbox
 @users.route('/mailbox/', methods=['GET'])
 def inbox():
-    '''
-     Shows the mailbox of the user divded into three parts
-     1) The Inbox part shows the received messages
-     2) The Sent part shows the messages that user sent
-     3) The Draft part shows the messages in the draft
-
-     It also provides the functionality for the user to delete future
-     messages if the user is lottery winner
-    '''
+    # '''
+    #  Shows the mailbox of the user divded into three parts
+    #  1) The Inbox part shows the received messages
+    #  2) The Sent part shows the messages that user sent
+    #  3) The Draft part shows the messages in the draft
+    #
+    #  It also provides the functionality for the user to delete future
+    #  messages if the user is lottery winner
+    # '''
     if current_user is not None and hasattr(current_user, 'id'): #check if the user is logged:
 
         # look for filter
