@@ -1,0 +1,316 @@
+openapi: 3.0.1
+info:
+  title: API Gateway service API endpoints
+  description: API Gateway from Message in a Bottle with Microservices
+  version: 1.0.0-oas3
+
+servers:
+  - url: /
+
+paths:
+  /:
+    get:
+        tags: [ Home ]
+        summary: Return the home page of the web app
+        responses:
+          200:
+            description: Renders the mailbox.html template
+  /logout:
+    get:
+      tags: [ Authentication ]
+      summary: logout the user
+      responses:
+        200:
+          description: Renders the login.html template
+  /login:
+    get:
+      tags: [ User ]
+      summary: Shows the login page and its form
+      responses:
+        200:
+          description: Renders the login.html template
+    post:
+      tags: [ User ]
+      summary: Handles the login of the user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        201:
+          description: Reloads the login.html page with a warning, in case the user credentials were invalid
+        200:
+          description: Redirects to the correct profile page, depending on the type of the user
+        202:
+          description: if try to login again, redirects to new page with comment.
+  /users:
+    get:
+      tags: [Users]
+      summary: list of users
+      responses:
+        200:
+          description: user will not be able to see the users list page, redirects to login page
+        302:
+          description: user will see the the page user.html
+
+  #Leonardo
+  /send:
+    get:
+      tags:
+        - Message
+      summary: will send a message
+      responses:
+        200:
+          description: user will not be able to see the send page, redirects to login page
+        302: #forse 200 perchè c'è scritto, ma non so
+          description: user will see the the page send.html
+    post:
+      tags:
+        - Message
+      summary: adds a message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                recipient:
+                  type: string
+                body:
+                  type: string
+                delivery_date:
+                  type: string
+                submit_button: # can be Save changes, Send as message, Save as draft, Send
+                  type: string
+                image_file:
+                  type: string
+              required:
+                - recipient
+                - body
+                - submit_button
+      responses:
+        302:
+          description: user will see the the page send.html
+  /mailbox:
+    get:
+      tags:
+        - Message
+      summary: show sent, recived and draft messages
+      responses:
+        200:
+          description: user will not be able to see the mailbox page, redirects to login page
+        302:
+          description: user will see the the page mailbox.html
+  /message/<id>:
+    get:
+      tags:
+        - Message
+      summary: show the message based on the provided id
+      responses:
+        200:
+          description: redirects to login page if the user isn't logged or to the mailbox page otherwise
+        302:
+          description: user will see the the page message.html
+
+  #Usman
+  /calendar:
+    get:
+      tags: [ Message ]
+      summary: Show calendar
+      description: Shows sent and received messages to the user in the calendar
+      responses:
+        302:
+          description: successfully renders the calendar page if the result of matching criteria is alright
+        400:
+          description: bad request. If user didn't logged it will be redirected to the login page
+  /delete_messages:
+    get:
+      tags: [ Message ]
+      summary: show delete_messages page
+      responses:
+        200:
+          description: successfully renders to delete_messages page if user has enough lottery points
+        203:
+          description: redirects to mailbox page if user dose not have enough lottery points
+        400:
+          description: if user is not logged, redirects to login page
+  /create_user:
+    get:
+      tags: [ Users ]
+      summary: shows the create_user page
+      responses:
+        200:
+          description: show the form with the required fields to create a user
+        203:
+          description: You are currently logged in, you have to <a href=/logout>logout</a> first
+    post:
+      tags: [Users]
+      summary: create user by entering the user data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                firstname:
+                  type: string
+                lastname:
+                  type: string
+                password:
+                  type: string
+                date_of_birth:
+                  type: string
+                nickname:
+                  type: string
+                location:
+                  type: string
+                operation: # Submit (Forwards the request to create user)
+                  type: string
+              required:
+                - operation
+      responses:
+        201:
+          description: user created successfully, redirects to users page
+        203:
+          description: redirects to create_user page (if email is already registered, or nickname is not available)
+
+  #Filippo
+  /deleteAccount:
+    get:
+      tags:
+        - Users
+      summary: show page for delete a user
+      responses:
+        201:
+          description: the user is correctly logged and it's able to delete the account. Will redirect to delete.html page
+        400:
+          description: the user is not logged. Wil lredirect to login page
+    post:
+      tags:
+        - Users
+      summary: delete a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                password:
+                  type: string
+              required:
+                - user_id
+                - password
+      responses:
+        201:
+          description: password and user_id are valid
+        301:
+          description: invalid password or user_id, or user not logged.
+  /profile:
+    get:
+      tags: [ Users ]
+      summary: look the profile
+      description: >
+        This functionality allows to users to view the user's profile.
+        Retrive the information about the user in the db, and pass as argument
+        the values in the 'profile_info.html' template.
+        If the user who try to access this service is not logged, will be render
+        in the 'home' page
+      responses:
+        201:
+          description: will show a page with profile information
+        401:
+          description: generic error
+    post:
+      tags: [Users]
+      summary: change info in the profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                operation: #can be "filter" or "change_info"
+                  type: string
+                filter_world: #required only if filter is "yes"
+                  type: string
+                firstname:
+                  type: string
+                lastname:
+                  type: string
+                birthday:
+                  type: string
+                location:
+                  type: string
+                new_password:
+                  type: string
+                old_password:
+                  type: string
+              required:
+                - operation
+      responses:
+        201:
+          description: information changed correcly
+        202:
+          description: old_password wrong
+        203:
+          description: filter applied correctly
+  /lottery:
+    get:
+      tags:
+        - Lottery
+      summary: lottery part
+      operationId: lottery
+      description: |
+        play with the lottery
+      responses:
+        200:
+          description: shill shows lottery.html page
+        301:
+          description: user not logged
+    post:
+      tags:
+        - Lottery
+      summary: a user can participate to the lottery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                password:
+                  type: string
+              required:
+                - user_id
+                - password
+      responses:
+        201:
+          description: correclty enrolled to lottery
+        301:
+          description: Incorrect user information
+        202:
+          description: user already enrolled in the lottery

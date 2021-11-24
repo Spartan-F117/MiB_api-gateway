@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Mailbox{% endblock %}
+{% block content %}
+
+{% if current_user.is_authenticated %}
+<div class="alert alert-success" role="alert">
+    Hi {{ current_user.firstname }}! This is your mailbox!
+</div>
+
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+        * {
+        box-sizing: border-box;
+        }
+
+        /* Clear floats after the columns */
+        .row:after {
+        content: "";
+        display: table;
+        clear: both;
+        }
+
+        #div2{display: none;}
+        
+        #div3{display: none;}
+
+        .div_hover { background-color: #ccc }
+
+        .div_hover:hover { background-color: rgba(0, 132, 255, 0.514);}
+
+        .a_hover { background-color: rgba(0, 255, 42, 0.521); }
+
+        .a_hover:hover { background-color: rgb(0, 255, 42); }
+
+        </style>
+    </head>
+    <body>
+        <div style="margin-left: 30px;">
+            <button class="btn btn-primary" onclick="ShowInbox()">Inbox</button>
+            <button class="btn btn-primary" onclick="ShowSent()">Sent</button>
+            <button class="btn btn-primary" onclick="ShowDraft()">Draft</button>
+        </div>
+        
+        <script type="text/javascript">
+            function ShowInbox() {
+                document.getElementById('div1').style.display = "block";
+                document.getElementById('div2').style.display = "none";
+                document.getElementById('div3').style.display = "none";
+            }
+            function ShowSent() {
+                document.getElementById('div1').style.display = "none";
+                document.getElementById('div2').style.display = "block";
+                document.getElementById('div3').style.display = "none";
+            }
+            function ShowDraft() {
+                document.getElementById('div1').style.display = "none";
+                document.getElementById('div2').style.display = "none";
+                document.getElementById('div3').style.display = "block";
+            }
+        </script>
+
+        <div class="container p-0" id="div1">
+            <h1 class="h3 mt-3 mb-3">Inbox</h1>
+            <div class="row">
+                <h3 style="margin-left: 10px;">Sender</h3>
+                <h3 style="margin-left: 60px;">Date</h3>
+                <h3 style="margin-left: 147px;">Body</h3>
+            </div>
+            <div class="row">
+                <div style="width: 99%; float: left; padding: 10px; overflow: hidden;">
+                    {% for message in messages: %}
+                        {% if not message[0].opened %}
+                            <a class="list-group-item list-group-item-sR border-1 a_hover">
+                        {% else %}
+                            <a class="list-group-item list-group-item-sR border-1 div_hover">
+                        {% endif %}
+                        <div class="row" class="row" style="float: right; margin-right: 1px;">
+                            <div class="flex-grow-1 ml-3">
+                                <input style="margin-top:2px; margin-bottom: 7px;" type='button' class="btn btn-info" value='Open'
+                                    onclick='window.location.href = `/message/{{message[0].message_id}}`;' />
+                            </div>
+                            <div class="flex-grow-1 ml-3">
+                                <input style="margin-top:2px; margin-bottom: 7px;" type='button' class="btn btn-info" value='Forward' onclick='
+                                    window.location.href = `/send?body={{message[0].body}}`;' />
+                            </div>
+                            <div class="flex-grow-1 ml-3">
+                                <input style="margin-top:2px; margin-bottom: 7px; margin-left: 10px;" type='button' class="btn btn-success" value='Reply' onclick='
+                                    window.location.href = `/send?reciever={{message[1].nickname}}&body={{message[0].body}}&reply=True`;' />
+                            </div>
+                            <div class="flex-grow-1 ml-3">
+                                <input style="margin-top:2px; margin-bottom: 7px; margin-left: 10px;" type='button' class="btn btn-danger" value='Delete' onclick='
+                                    window.location.href = `/message/{{message[0].message_id}}?delete=True`;' />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="d-flex align-items-start">
+                                <div>
+                                    {{message[1].nickname}}
+                                </div>
+                                <div style="margin-left: 100px;">
+                                    {{message[0].delivery_date}}
+                                </div>
+                                <div style="margin-left: 50px; max-width: 200px; max-height: 200px; overflow: hidden;">
+                                    {{message[0].body}}
+                                    <figure id="imageResult" style="display: block;" class="image"> 
+                                        <img id="base64ImageForDisplay" alt="" src="data:image/png;base64,{{message[0].image}}" style="display: block;">
+                                    </figure>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="container p-0" id="div2">
+            <h1 class="h3 mt-3 mb-3">Sent Messages</h1>
+            <div class="row">
+                <h3 style="margin-left: 10px;">Reciever</h3>
+                <h3 style="margin-left: 50px;">Date</h3>
+                <h3 style="margin-left: 130px;">Body</h3>
+            </div>
+
+            <div class="row">
+                <div style="width: 99%; float: left; padding: 10px; overflow: hidden;">
+                    {% for message in sendMessages: %}
+                        <a class="list-group-item list-group-item-sR border-1 div_hover">
+                            <div class="row" style="float: right; margin-right: 1px;">
+                                <div>
+                                    <input style="margin-left: 10px;" type='button' class="btn btn-success" value='Open' onclick='window.location.href = `/message/{{message[0].message_id}}`;' />
+                                </div>
+                                <div>
+                                    <input style="margin-left: 10px;" type='button' class="btn btn-info" value='Forward' onclick='
+                                        window.location.href = `/send?body={{message[0].body}}`;' />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div>
+                                    {{message[1].nickname}}
+                                </div>
+                                <div style="margin-left: 100px;">
+                                    {{message[0].delivery_date}}
+                                </div>
+                                <div style="margin-left: 50px; max-width: 200px; max-height: 200px; overflow: hidden;">
+                                    {{message[0].body}}
+                                    <figure id="imageResult" style="display: block;" class="image"> 
+                                        <img id="base64ImageForDisplay" alt="" src="data:image/png;base64,{{message[0].image}}" style="display: block;">
+                                    </figure>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="container p-0" id="div3">
+            <h1 class="h3 mt-3 mb-3">Draft</h1>
+            <div class="row">
+                <div style="width: 99%; float: left; padding: 10px;">
+                    {% for message in draftMessages: %}
+                        <a class="list-group-item list-group-item-sR border-1" style="background-color:#ccc;">
+                            <div class="row" style="float: right; margin-right: 1px;">
+                                <div>
+                                    <input style="margin-top:2px; margin-bottom: 7px;" class="btn btn-danger" type='button' value='Edit' onclick='
+                                        window.location.href = `/send?draft_id={{message[0].message_id}}`;' />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div>
+                                    {{message[1].nickname}}
+                                </div>
+                                <div id ="ID1"style="margin-left: 50px; max-width: 200px; max-height: 200px; overflow: hidden;">
+                                    {{message[0].body}}
+                                    <figure id="imageResult" style="display: block;" class="image"> 
+                                        <img id="base64ImageForDisplay" alt="" src="data:image/png;base64,{{message[0].image}}" style="display: block;">
+                                    </figure>
+                                </div>
+                            </div>    
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+Hi Anonymous, <a href="/login">log in</a> or <a href="/create_user">create an account</a>
+{% endif %}
+    </body>
+</html>
+{% endblock %}
