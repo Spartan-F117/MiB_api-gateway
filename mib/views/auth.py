@@ -44,7 +44,7 @@ def login():
 
             if status == 200:
                 user = User.build_from_json(json_response['user'])
-                login_user(user)
+                login_user(user,remember=True)
                 return render_template("mailbox.html")
             elif status == 201 or "not a 'email'" in json_response["detail"]:
                 print("Invalid credential")
