@@ -3,6 +3,7 @@ from mib import app
 from flask_login import (logout_user)
 from flask import abort
 import requests
+import json
 
 
 class UserManager:
