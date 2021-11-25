@@ -131,13 +131,24 @@ def delete_account():
         The function will delete the account only for the logged user, and will redirect in the start page
     """
     if request.method == 'GET': #show the form
-        if current_user is not None and hasattr(current_user, 'id'):
-            return render_template("delete.html")
-        else:
-            return redirect('/login')
+        
+        payload = dict(user=current_user)
+        try:
+            response = requests.post(USERS_ENDPOINT + "/delete_user",
+                                    json=payload,
+                                    timeout=REQUESTS_TIMEOUT_SECONDS
+                                    )
+            if response.status_code == 200:
+                print("Successfully logged, redirected to delete.html")
+                return render_template("delete.html")
+            elif response.status_code == 400:
+                print("user not logged")
+                return redirect('/login')
+        except Exception as e:
+            print(e)
     else:
         if request.form['confirm_button'] == 'Delete my account': #if confirm_button is pressed the account is deleted (the elimination is done putting True in the is_deleted flag)
-            payload = dict(id=current_user)
+            payload = dict(user=current_user, delete=['True'])
             try:
                 response = requests.post(USERS_ENDPOINT + "/delete_user",
                                         json=payload,
@@ -146,8 +157,8 @@ def delete_account():
                 if response.status_code == 201:
                     print("Account deleted")
                     return render_template('delete.html', is_deleted=True)
-                elif response.status_code == 400:
-                    print("user not logged")
+                elif response.status_code == 301:
+                    print("invalid password or user_id, or user not logged")
                     return redirect("/login")
             except Exception as e:
                 print(e)

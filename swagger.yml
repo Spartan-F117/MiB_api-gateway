@@ -199,7 +199,7 @@ paths:
         - Users
       summary: show page for delete a user
       responses:
-        201:
+        200:
           description: the user is correctly logged and it's able to delete the account. Will redirect to delete.html page
         400:
           description: the user is not logged. Wil lredirect to login page
@@ -214,18 +214,18 @@ paths:
             schema:
               type: object
               properties:
-                user_id:
+                user:
                   type: string
-                password:
+                delete:
                   type: string
               required:
-                - user_id
-                - password
+                - user
+                - delete
       responses:
         201:
           description: password and user_id are valid
         301:
-          description: invalid password or user_id, or user not logged.
+          description: invalid user_id, or user not logged.
   /profile:
     get:
       tags: [ Users ]
