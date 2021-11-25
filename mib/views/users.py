@@ -185,7 +185,6 @@ def inbox():
     else:
         return redirect('/login')
 
-
 @users.route('/users/', methods=['POST', 'GET'])
 def user():
     '''
@@ -223,3 +222,79 @@ def user():
     else:
        print("user not logged")
        return redirect('/login')
+
+        #return render_template("login.html")    #-> form is undefined
+
+
+@users.route('/profile', methods=['GET','POST'])
+def profile():
+    """
+        This functionality allows to users to view the user's profile.
+        Retrive the information about the user in the db, and pass as argument
+        the values in the 'profile_info.html' template.
+        If the user who try to access this service is not logged, will be render in the
+        'home' page
+    """
+    if current_user is not None and hasattr(current_user, 'id'): #check if the user is logged
+        if not request.form.is_submitted(): #filter is asked
+            
+            payload = dict(user_id=current_user.id)
+            print('trying seeing user filter....')
+            response = requests.get(USERS_ENDPOINT + '/profile_filter',
+                                        json=payload,
+                                        timeout=REQUESTS_TIMEOUT_SECONDS
+                                        )
+            print('received response for user filter....')
+            json_response = response.json()
+
+            user_filter_list = json_response.get['filter']
+
+            return render_template("profile_info.html", current_user=current_user,user_filter_list=user_filter_list)
+        else: #apply the modification in the form
+            firstname = request.form.data['firstname']
+            lastname = request.form.data['lastname']
+            new_password = request.form.data['new_password']
+            old_password = request.form.data['old_password']
+            birthday = str(request.form.data['birthday'])
+            location = request.form.data['location']
+            filter = request.form.data['filter']
+            if 'filter' in request.form: #if the user presses the filter button i change the word filter
+                print("change filter branch")
+    
+                payload = dict(filter=filter, user_id=current_user.id)
+                print('trying updating user filter....')
+                response = requests.post(USERS_ENDPOINT + '/change_filter',
+                                            json=payload,
+                                            timeout=REQUESTS_TIMEOUT_SECONDS
+                                            )
+                print('received response for update filter....')
+                json_response = response.json()
+                user_filter_list = json_response.get['filter']
+
+                return render_template("profile_info.html", current_user=current_user,user_filter_list=user_filter_list)
+            else: #if the user presses the other button he changes is information with the info in the form
+                print("change info branch")
+                #TODO richiesta modifica info
+                payload = dict(new_password=new_password, firstname=firstname,
+                           lastname=lastname, birthday=birthday,
+                           old_password=old_password, location=location, user_id=current_user.id)
+                
+                print('trying updating user info....')
+                response = requests.post(USERS_ENDPOINT + '/change_info',
+                                            json=payload,
+                                            timeout=REQUESTS_TIMEOUT_SECONDS
+                                            )
+                print('received response for update info....')
+                json_response = response.json()
+                user_filter_list = json_response.get['filter']
+
+                status = response.status_code
+
+                if status == 201:
+                    print("info updated")
+                else:
+                    print("wrong password")
+                return render_template("profile_info.html", current_user=current_user,user_filter_list=user_filter_list)
+    else:
+        return redirect('/login')
+

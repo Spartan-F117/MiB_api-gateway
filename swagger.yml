@@ -270,8 +270,8 @@ paths:
               properties:
                 user_id:
                   type: string
-                operation: #can be "filter" or "change_info"
-                  type: string
+                #operation: #can be "filter" or "change_info"
+                #  type: string
                 filter_world: #required only if filter is "yes"
                   type: string
                 firstname:
@@ -286,8 +286,8 @@ paths:
                   type: string
                 old_password:
                   type: string
-              required:
-                - operation
+              #required:
+              #  - operation
       responses:
         201:
           description: information changed correcly
