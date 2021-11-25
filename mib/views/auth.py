@@ -1,7 +1,5 @@
-from flask import Blueprint, flash, redirect, render_template, url_for
-from flask_login import login_required, login_user, logout_user
 from flask import Blueprint, redirect, render_template,flash
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, current_user, login_required
 from mib.forms import LoginForm
 import requests
 from mib import app
@@ -38,13 +36,13 @@ def login():
                                      )
             print('received response....')
             json_response = response.json()
-            print(json_response)
-
             status = response.status_code
 
             if status == 200:
                 user = User.build_from_json(json_response['user'])
-                login_user(user,remember=True)
+                print("user logged")
+                print(user)
+                login_user(user)
                 return render_template("mailbox.html")
             elif status == 201 or "not a 'email'" in json_response["detail"]:
                 print("Invalid credential")
@@ -61,8 +59,6 @@ def login():
 @auth.route('/logout')
 @login_required
 def logout():
-    if current_user is not None and hasattr(current_user, 'id'):
-        send_logout_request()
-        logout_user()
-
+    send_logout_request()
+    logout_user()
     return redirect('/')

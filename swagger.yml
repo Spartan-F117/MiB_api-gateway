@@ -91,11 +91,6 @@ paths:
           description: user created successfully, redirects to users page
         203:
           description: redirects to create_user page (if email is already registered, or nickname is not available)
-
-
-
-
-
   /users:
     get:
       tags: [Users]
@@ -105,7 +100,29 @@ paths:
           description: user will not be able to see the users list page, redirects to login page
         302:
           description: user will see the the page user.html
-
+    post:
+      tags: [ Users ]
+      summary: block or report users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                owner_id:
+                  type: string
+                operation: #could be report or block
+                  type: string
+                user_to_report:
+                  type: string
+      responses:
+        201:
+          description: user added to report_list
+        202:
+          description: user added to block_list
+        303:
+          description: error on adding user to report/blocking list
   #Leonardo
   /send:
     get:
