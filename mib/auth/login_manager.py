@@ -17,6 +17,7 @@ def init_login_manager(app):
         """
         user = UserManager.get_user_by_id(user_id)
         user.authenticated = True
+        user.is_active = True
         return user
 
     return login_manager

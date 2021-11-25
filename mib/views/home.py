@@ -10,12 +10,9 @@ USERS_ENDPOINT = app.config['USERS_MS_URL']
 MESSAGE_ENDPOINT = ""
 
 
-
-
 home = Blueprint('home', __name__)
 
 
-
-@home.route('/', methods=['GET', 'POST'])
+@home.route('/', methods=['GET'])
 def index():
     return redirect("/mailbox")
