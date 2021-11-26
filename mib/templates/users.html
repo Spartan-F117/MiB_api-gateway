@@ -30,14 +30,12 @@
                       {% endif %}
                     </div>
                     <div style="float: right; margin-right: 1px;">
-                      {% if user.id != 1 %}
                       <input class="btn btn-danger" type='button' value='block' onclick='blockUser()
                                 window.location.href = `/users?block_user_id={{user.id}}&block=1`;' />
                       <input class="btn btn-info" type='button' value='Unblock' onclick='unblockUser()
                                 window.location.href = `/users?block_user_id={{user.id}}&block=0`;' />
                       <input class="btn btn-dark" type='button' value='report' onclick='reportUser();
                                 window.location.href = `/users?block_user_id={{user.id}}&block=2`;' />
-                      {% endif %}
                     </div>
                 <!-- </div> -->
             </a>
