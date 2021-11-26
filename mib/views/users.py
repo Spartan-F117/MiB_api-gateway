@@ -33,7 +33,7 @@ def add_to_blacklist(owner_blocklist, user_in_blacklist):
 def remove_to_blacklist(owner_blocklist, user_in_blacklist):
     payload = dict(id_owner=owner_blocklist, id_to_insert=user_in_blacklist)
     try:
-        response = requests.delete(USERS_ENDPOINT + "/blacklist", json=payload, timeout=REQUESTS_TIMEOUT_SECONDS)
+        response = requests.post(USERS_ENDPOINT + "/delete_blacklist", json=payload, timeout=REQUESTS_TIMEOUT_SECONDS)
         if response.status_code == 202:
             print("user removed to blacklist")
             flash("user removed to blacklist")
@@ -230,11 +230,11 @@ def user():
     if result == "error":
         flash("error, retry later")
         redirect('/mailbox')
-        # else:
-        #     return render_template("users.html", users=list_user)
     else:
-       print("user not logged")
-       return redirect('/login')
+        return render_template("users.html", users=list_user)
+    #else:
+    #   print("user not logged")
+    #   return redirect('/login')
 
 
 @users.route('/profile', methods=['GET','POST'])
@@ -305,7 +305,7 @@ def profile():
                     print("info updated")
                 else:
                     print("wrong password")
-                return render_template("profile_info.html", current_user=current_user,user_filter_list=user_filter_list)
+                return render_template("profile_info.html", current_user=current_user, user_filter_list=user_filter_list)
     else:
         return redirect('/login')
 
