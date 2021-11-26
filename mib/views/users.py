@@ -251,7 +251,7 @@ def profile():
             return render_template("profile_info.html", current_user=current_user,user_filter_list=user_filter_list)
         else: #apply the modification in the form
             firstname = request.form.get('firstname')
-            lastname = request.form.get('lastname')
+            lastname = request.form.get('surname')
             new_password = request.form.get('new_password')
             old_password = request.form.get('old_password')
             birthday = str(request.form.get('birthday'))
@@ -275,7 +275,7 @@ def profile():
                 print("change info branch")
                 #TODO richiesta modifica info
                 payload = dict(new_password=new_password, firstname=firstname,
-                           lastname=lastname, birthday=birthday,
+                           surname=lastname, birthday=birthday,
                            old_password=old_password, location=location, user_id=current_user.id)
                 
                 print('trying updating user info....')
