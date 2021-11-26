@@ -15,11 +15,8 @@ WORKDIR /app
 # installing all requirements
 RUN ["pip", "install", "-r", "requirements.prod.txt"]
 
-ENV FLASK_ENV=development
-
 # exposing the port
 EXPOSE 5000/tcp
 
 # Main command
 CMD ["gunicorn", "--config", "gunicorn.conf.py", "wsgi:app"]
-CMD ["flask", "run"]

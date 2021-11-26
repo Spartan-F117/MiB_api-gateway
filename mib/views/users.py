@@ -3,6 +3,7 @@ import requests
 from flask_login import login_required, current_user
 from mib import app
 from mib.forms import UserForm
+from mib.auth.user import User
 
 users = Blueprint('users', __name__)
 
@@ -11,8 +12,9 @@ USERS_ENDPOINT = app.config['USERS_MS_URL']
 REQUESTS_TIMEOUT_SECONDS = 60
 MESSAGE_ENDPOINT = ""
 
+
 def add_to_blacklist(owner_blocklist, user_in_blacklist):
-    payload = dict(id_owner=owner_blocklist,id_to_insert=user_in_blacklist)
+    payload = dict(id_owner=owner_blocklist, id_to_insert=user_in_blacklist)
     try:
         response = requests.post(USERS_ENDPOINT + "/blacklist",
                                  json=payload,
@@ -50,14 +52,16 @@ def add_to_reportlist(owner_reportlist, user_in_reportlist):
             print("user added to report list")
             flash("user added to report list")
         elif response.status_code == 303:
-            print("Generic error")
-            flash("Generic error")
+            print("user already reported")
+            flash("user already reported")
     except Exception as e:
         print(e)
 
 
-def retrive_users(id):
-    payload = dict(id=id)
+def retrive_users(id_):
+
+    payload = dict(id=str(id_))
+
     try:
         response = requests.post(USERS_ENDPOINT + "/show_users",
                                  json=payload,
@@ -67,10 +71,13 @@ def retrive_users(id):
             print("list retrived")
             json_response = response.json()
             result = json_response["list_users"]
+
         elif response.status_code == 303:
             print("Generic error")
             result = "error"
+
         return result
+
     except Exception as e:
         print(e)
 
@@ -185,45 +192,50 @@ def inbox():
     else:
         return redirect('/login')
 
+
 @users.route('/users/', methods=['POST', 'GET'])
+@login_required
 def user():
     '''
         Show a list of the online and offline users registered to MessageInABottle.
         Also provide the functionality for block and report a user.
     '''
-    if current_user is not None and hasattr(current_user, 'id'):  # check if the user is logged
-        print("sei loggato, operazione 'users' accettata")
-        owner_blocklist = current_user.id
-        user_in_blacklist = request.args.get("block_user_id")  # is the id of the user that he wants to block (it could be put in the URL)
+    #if current_user is not None and hasattr(current_user, 'id'):  # check if the user is logged
+    owner_blocklist = current_user.id
+    user_in_blacklist = request.args.get("block_user_id")  # is the id of the user that he wants to block (it could be put in the URL)
 
-        # chek if in the URL there is the id of the user to block
-        if user_in_blacklist is not None:
-            # put user in the blacklist
-            if request.args.get("block") == "1":  # is a parameter that could be in the URL to identify the blacklist action
-                add_to_blacklist(owner_blocklist, user_in_blacklist)
-
-            # remove user from the blacklist
-            elif request.args.get("block") == "0":
-                remove_to_blacklist(owner_blocklist, user_in_blacklist)
-            else:
-                owner_reportlist = current_user.id
-                user_in_reportlist = request.args.get("block_user_id")
-                add_to_reportlist(owner_reportlist, user_in_reportlist)
-
-        # user_in_blacklist is none:
-        result = retrive_users(current_user.id)
-
-        # Read the response and put it in the _users variable
-        if result == "error":
-            flash("error, retry later")
-            redirect('/mailbox')
+    # chek if in the URL there is the id of the user to block
+    if user_in_blacklist is not None:
+        # put user in the blacklist
+        if request.args.get("block") == "1":  # is a parameter that could be in the URL to identify the blacklist action
+            add_to_blacklist(str(owner_blocklist), str(user_in_blacklist))
+            print("user added to blacklist")
+        # remove user from the blacklist
+        elif request.args.get("block") == "0":
+            remove_to_blacklist(str(owner_blocklist), str(user_in_blacklist))
         else:
-            return render_template("users.html", users=result)
+            owner_reportlist = current_user.id
+            user_in_reportlist = request.args.get("block_user_id")
+            add_to_reportlist(str(owner_reportlist), str(user_in_reportlist))
+
+    # user_in_blacklist is none:
+    result = retrive_users(current_user.id)
+
+    list_user = []
+    for item in result:
+        user = User.build_from_json(item)
+
+        list_user.append(user)
+
+    # Read the response and put it in the _users variable
+    if result == "error":
+        flash("error, retry later")
+        redirect('/mailbox')
+        # else:
+        #     return render_template("users.html", users=list_user)
     else:
        print("user not logged")
        return redirect('/login')
-
-        #return render_template("login.html")    #-> form is undefined
 
 
 @users.route('/profile', methods=['GET','POST'])
