@@ -224,25 +224,12 @@ paths:
       tags:
         - Users
       summary: delete a user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user:
-                  type: string
-                delete:
-                  type: string
-              required:
-                - user
-                - delete
       responses:
         201:
           description: password and user_id are valid
         301:
           description: invalid user_id, or user not logged.
+
   /profile:
     get:
       tags: [ Users ]
