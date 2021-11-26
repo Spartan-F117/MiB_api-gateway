@@ -146,10 +146,9 @@ def inbox():
     if current_user is not None and hasattr(current_user, 'id'): #check if the user is logged:
 
         # look for filter
-        payload_filter = dict(id=current_user)
+        #payload_filter = dict(id=current_user)
         try:
-            response = requests.post(USERS_ENDPOINT + "/filter_list",
-                                     json=payload_filter,
+            response = requests.get(USERS_ENDPOINT + "/profile_filter/"+str(current_user.id),
                                      timeout=REQUESTS_TIMEOUT_SECONDS
                                      )
             if response.status_code == 201:
@@ -248,28 +247,28 @@ def profile():
         'home' page
     """
     if current_user is not None and hasattr(current_user, 'id'): #check if the user is logged
-        if not request.form.is_submitted(): #filter is asked
+        if request.method == 'GET': #filter is asked
             
-            payload = dict(user_id=current_user.id)
+            #payload = dict(user_id=current_user.id)
             print('trying seeing user filter....')
-            response = requests.get(USERS_ENDPOINT + '/profile_filter',
-                                        json=payload,
+            response = requests.get(USERS_ENDPOINT + '/profile_filter/'+str(current_user.id),
                                         timeout=REQUESTS_TIMEOUT_SECONDS
                                         )
             print('received response for user filter....')
             json_response = response.json()
-
-            user_filter_list = json_response.get['filter']
+            print(json_response)
+            print("filtri: "+json_response['filter'])
+            user_filter_list = json_response['filter']
 
             return render_template("profile_info.html", current_user=current_user,user_filter_list=user_filter_list)
         else: #apply the modification in the form
-            firstname = request.form.data['firstname']
-            lastname = request.form.data['lastname']
-            new_password = request.form.data['new_password']
-            old_password = request.form.data['old_password']
-            birthday = str(request.form.data['birthday'])
-            location = request.form.data['location']
-            filter = request.form.data['filter']
+            firstname = request.form.get('firstname')
+            lastname = request.form.get('surname')
+            new_password = request.form.get('new_password')
+            old_password = request.form.get('old_password')
+            birthday = str(request.form.get('birthday'))
+            location = request.form.get('location')
+            filter = request.form.get('filter')
             if 'filter' in request.form: #if the user presses the filter button i change the word filter
                 print("change filter branch")
     
@@ -281,14 +280,14 @@ def profile():
                                             )
                 print('received response for update filter....')
                 json_response = response.json()
-                user_filter_list = json_response.get['filter']
+                user_filter_list = json_response['filter']
 
                 return render_template("profile_info.html", current_user=current_user,user_filter_list=user_filter_list)
             else: #if the user presses the other button he changes is information with the info in the form
                 print("change info branch")
                 #TODO richiesta modifica info
                 payload = dict(new_password=new_password, firstname=firstname,
-                           lastname=lastname, birthday=birthday,
+                           surname=lastname, birthday=birthday,
                            old_password=old_password, location=location, user_id=current_user.id)
                 
                 print('trying updating user info....')
@@ -298,7 +297,7 @@ def profile():
                                             )
                 print('received response for update info....')
                 json_response = response.json()
-                user_filter_list = json_response.get['filter']
+                user_filter_list = json_response['filter']
 
                 status = response.status_code
 
