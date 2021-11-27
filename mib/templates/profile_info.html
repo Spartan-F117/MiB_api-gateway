@@ -75,7 +75,13 @@
                         <h5> Insert the password to confirm changes: </h5>
                         <p> (The old one if you are changing it) </p>
                         <input type="text" id="old_password" name="old_password" value="">
-                        <input type="submit" class="btn btn-success" value="Save changes">
+                        <input type="submit" onClick="refreshPage()" class="btn btn-success" value="Save changes">
+
+                        <script>
+                          function refreshPage(){
+                              window.location.reload();
+                          } 
+                        </script>
                   </div>
             </form>
           </div>
