@@ -31,6 +31,11 @@ class Config(object):
     USERS_MS_PORT = os.getenv('USERS_MS_PORT', 5002)
     USERS_MS_URL = '%s://%s:%s' % (USERS_MS_PROTOCOL, USERS_MS_HOST, USERS_MS_PORT)
 
+    MESSAGE_MS_PROTOCOL = os.getenv('MESSAGE_MS_PROTOCOL', 'http')
+    MESSAGE_MS_HOST = os.getenv('MESSAGE_MS_HOST', 'localhost')
+    MESSAGE_MS_PORT = os.getenv('MESSAGE_MS_PORT', 5003)
+    MESSAGE_MS_URL = '%s://%s:%s' % (MESSAGE_MS_PROTOCOL, MESSAGE_MS_HOST, MESSAGE_MS_PORT)
+
     # Configuring sessions
     SESSION_TYPE = 'redis'
 

@@ -175,10 +175,10 @@ def inbox():
             #     recived: <msg2>
             #     draft: <msg1>
             # }
-            if response.status_code == 200:
+            if response.status_code == 201:
                 flash("you can't see this information")
                 return render_template("login.html")
-            elif response.status_code == 302:
+            elif response.status_code == 202:
                 print("infromation recived")
                 json_response = response.json()
                 #TODO: parsing json to retrive this three information:
