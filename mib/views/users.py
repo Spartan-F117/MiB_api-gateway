@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, flash, redirect, request
 import requests
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user, logout_user
 from mib import app
 from mib.forms import UserForm
 from mib.auth.user import User
@@ -311,7 +311,7 @@ def profile():
 
 
 # This route is to delete an account
-@users.route('/deleteAccount', methods=['POST', 'GET'])
+@users.route('/deleteAccount/', methods=['POST', 'GET'])
 @login_required
 def delete_account():
     """
@@ -320,8 +320,12 @@ def delete_account():
 
         if confirm_button is pressed the account is deleted (the elimination is done putting True in the is_deleted flag)
     """
+    print("siamo nella delete")
 
-    if request.form['confirm_button'] == 'Delete my account':
+    if request.method == "GET":
+        print("siamo nella GET DELETE", is_deleted=True)
+        return render_template("delete.html")
+    else:
         payload = dict(user=str(current_user.id))
         try:
             response = requests.post(USERS_ENDPOINT + "/delete_user",
@@ -330,10 +334,11 @@ def delete_account():
                                      )
             if response.status_code == 201:
                 print("Account deleted")
+                logout_user()
                 return render_template('delete.html', is_deleted=True)
             elif response.status_code == 301:
-                print("invalid password or user_id, or user not logged")
-                return redirect("/login")
+                print("Generic error")
+                return redirect("/mailbox")
         except Exception as e:
             print(e)
 
