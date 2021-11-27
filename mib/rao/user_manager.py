@@ -3,7 +3,6 @@ from mib import app
 from flask_login import (logout_user)
 from flask import abort
 import requests
-import json
 
 
 class UserManager:
@@ -19,7 +18,7 @@ class UserManager:
         :return: User obj with id=user_id
         """
         try:
-            response = requests.get("%s/user/%s" % (cls.USERS_ENDPOINT, str(user_id)),
+            response = requests.get(cls.USERS_ENDPOINT+"/user/"+str(user_id),
                                     timeout=cls.REQUESTS_TIMEOUT_SECONDS)
             json_payload = response.json()
             if response.status_code == 200:

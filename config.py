@@ -8,7 +8,7 @@ class Config(object):
     # configuring microservices endpoints
     import os
 
-    REQUESTS_TIMEOUT_SECONDS = float(os.getenv("REQUESTS_TIMEOUT_SECONDS", 5))
+    REQUESTS_TIMEOUT_SECONDS = float(os.getenv("REQUESTS_TIMEOUT_SECONDS", 15))
 
     # configuring redis
     REDIS_HOST = os.getenv('REDIS_HOST', 'redis_cache')

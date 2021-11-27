@@ -24,7 +24,7 @@ def send_logout_request():
 # This is the route to do the login, in the login.html page there is a form and the information
 # that are put in the form are cheked in the db and the is_active flag in the db is put equal to True
 @auth.route('/login/', methods=['GET', 'POST'])
-def login():
+def login(re=False):
     form = LoginForm()
     if form.is_submitted():
         email, password = form.data['email'], form.data['password']
@@ -42,7 +42,7 @@ def login():
             if status == 200:
                 user = User.build_from_json(json_response['user'])
                 print("user logged")
-                login_user(user)
+                login_user(user, remember=True)
                 return render_template("mailbox.html")
             elif status == 201 or "not a 'email'" in json_response["detail"]:
                 print("Invalid credential")
@@ -54,8 +54,13 @@ def login():
             print("error")
             print(e)
             return "HTTP timeout"
-    return render_template('login.html', form=form)
+    return render_template('login.html', form=form, re_login=re)
 
+@auth.route('/relogin')
+def re_login():
+    """Method that is being called after the user's session is expired.
+    """
+    return login(re=True)
 
 @auth.route('/logout')
 @login_required

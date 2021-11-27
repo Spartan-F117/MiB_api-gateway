@@ -323,10 +323,10 @@ def delete_account():
     print("siamo nella delete")
 
     if request.method == "GET":
-        print("siamo nella GET DELETE", is_deleted=True)
+        print("siamo nella GET DELETE")
         return render_template("delete.html")
     else:
-        payload = dict(user=str(current_user.id))
+        payload = dict(user_id=str(current_user.id))
         try:
             response = requests.post(USERS_ENDPOINT + "/delete_user",
                                      json=payload,

@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from flask import Flask
 from flask_bootstrap import Bootstrap
@@ -10,6 +11,9 @@ login = None
 debug_toolbar = None
 app = None
 
+# @app.before_requestdef
+# def make_session_permanent():
+#     session.permanent = True
 
 def create_app():
     """
@@ -20,6 +24,14 @@ def create_app():
     global login
 
     app = Flask(__name__, instance_relative_config=True)
+
+    # MailTrap Configuration
+    app.config['MAIL_SERVER'] = 'smtp.mailtrap.io'
+    app.config['MAIL_PORT'] = 2525
+    app.config['MAIL_USERNAME'] = '0aac816f5c6371'
+    app.config['MAIL_PASSWORD'] = '4e5007c7bdbcaa'
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USE_SSL'] = False
 
     flask_env = os.getenv('FLASK_ENV', 'None')
     if flask_env == 'development':
