@@ -303,6 +303,7 @@ def profile():
 
                 if status == 201:
                     print("info updated")
+                    return redirect('/profile')
                 else:
                     print("wrong password")
                 return render_template("profile_info.html", current_user=current_user, user_filter_list=user_filter_list)
