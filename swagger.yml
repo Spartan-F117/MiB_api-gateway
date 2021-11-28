@@ -158,21 +158,22 @@ paths:
                 image_file:
                   type: string
               required:
+                - user_id
                 - recipient
                 - body
                 - submit_button
       responses:
         302:
-          description: user will see the the page send.html
+          description: user will redirect to mailbox
   /mailbox:
     get:
       tags:
         - Message
       summary: show sent, recived and draft messages
       responses:
-        200:
+        201:
           description: user will not be able to see the mailbox page, redirects to login page
-        302:
+        202:
           description: user will see the the page mailbox.html
   /message/<id>:
     get:

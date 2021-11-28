@@ -2,15 +2,18 @@ from flask import Blueprint, render_template, flash, redirect, request
 import requests
 from flask_login import login_required, current_user, logout_user
 from mib import app
-from mib.forms import UserForm
+from mib.forms import UserForm, SendForm
 from mib.auth.user import User
+import base64
+from datetime import date, datetime
+from mib.rao.user_manager import UserManager
 
 users = Blueprint('users', __name__)
 
 LOTTERY_ENDPOINT = app.config['LOTTERY_MS_URL']
 USERS_ENDPOINT = app.config['USERS_MS_URL']
 REQUESTS_TIMEOUT_SECONDS = 60
-MESSAGE_ENDPOINT = ""
+MESSAGE_ENDPOINT = app.config['MESSAGE_MS_URL']
 
 
 def add_to_blacklist(owner_blocklist, user_in_blacklist):
@@ -57,6 +60,23 @@ def add_to_reportlist(owner_reportlist, user_in_reportlist):
     except Exception as e:
         print(e)
 
+def send_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image):
+    
+    print('trying sending message....')
+
+    payload = dict(sender_id=sender_id, sender_nickname=sender_nickname,receiver_id=receiver_id,receiver_nickname=receiver_nickname, body=body, delivery_date=delivery_date, image=image)
+    try:
+        response = requests.post(MESSAGE_ENDPOINT + "/send_message", json=payload, timeout=REQUESTS_TIMEOUT_SECONDS)
+        if response.status_code == 202:
+            print("message sent")
+        else:
+            print("message not sent")
+    except Exception as e:
+        print(e)
+    
+    print('received response for sending message....')
+
+    return 200
 
 def retrive_users(id_):
 
@@ -81,6 +101,71 @@ def retrive_users(id_):
     except Exception as e:
         print(e)
 
+def get_user_by_nickname(nickname):
+
+    print('trying receiving user id from nickname....')
+             
+    try:
+        response = requests.get("%s/user_nickname/%s" % (USERS_ENDPOINT, nickname),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+        json_payload = response.json()
+        user = None
+
+        if response.status_code == 200:
+            user = User.build_from_json(json_payload)
+
+    except Exception as e:
+        print(e)
+
+    print('received response for user id from nickname....')
+
+    return user
+
+def delete_draft_message(draft_id):
+
+    print('trying deliting draft message....')
+
+    try:
+        response = requests.get("%s/delete_draft_message/%s" % (MESSAGE_ENDPOINT, draft_id),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+
+    except Exception as e:
+        print(e)
+
+    print('received response for delete draft message....')
+
+def draft_message_info(draft_id):
+    print('trying receiving draft message info....')
+
+    try:
+        response = requests.get("%s/draft_message_info/%s" % (MESSAGE_ENDPOINT, draft_id),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+        json_payload = response.json()
+
+    except Exception as e:
+        print(e)
+
+    print('received response for draft message info....')
+
+    return json_payload
+
+def blacklist_request(sender_id, receiver_id):
+    print('trying receiving blacklist info....')
+
+    try:
+        response = requests.get("%s/blacklist_info?sender_id=%s&receiver_id=%s" % (USERS_ENDPOINT, sender_id, receiver_id),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+        json_payload = response.json()
+
+    except Exception as e:
+        print(e)
+
+    print('received response for blacklist info....')
+
+    if response.status_code == 200: #blacklist found
+        return False
+    else:
+        return True
 
 @users.route('/create_user/', methods=['POST', 'GET'])
 def create_user():
@@ -129,67 +214,6 @@ def create_user():
         return render_template('create_user.html', form=form)
     else:
         return "You are currently logged in, you have to <a href=/logout>logout</a> first"
-
-
-# #This route is to see the mailbox
-@users.route('/mailbox/', methods=['GET'])
-def inbox():
-    # '''
-    #  Shows the mailbox of the user divded into three parts
-    #  1) The Inbox part shows the received messages
-    #  2) The Sent part shows the messages that user sent
-    #  3) The Draft part shows the messages in the draft
-    #
-    #  It also provides the functionality for the user to delete future
-    #  messages if the user is lottery winner
-    # '''
-    if current_user is not None and hasattr(current_user, 'id'): #check if the user is logged:
-
-        # look for filter
-        #payload_filter = dict(id=current_user)
-        try:
-            response = requests.get(USERS_ENDPOINT + "/profile_filter/"+str(current_user.id),
-                                     timeout=REQUESTS_TIMEOUT_SECONDS
-                                     )
-            if response.status_code == 201:
-                #filter recived
-                filter = response.json()
-            elif response.status_code == 202:
-                #no filter setting
-                filter = ""
-            elif response.status_code == 303:
-                #generic error
-                filter = ""
-        except Exception as e:
-            print(e)
-
-        payload = dict(id=current_user, filter=filter)
-        try:
-            response = requests.post(MESSAGE_ENDPOINT+"/mailbox",
-                                     json=payload,
-                                     timeout=REQUESTS_TIMEOUT_SECONDS
-                                     )
-            # response from mailbox microservice:
-            # {
-            #     sent: <msg1>,<msg2>
-            #     recived: <msg2>
-            #     draft: <msg1>
-            # }
-            if response.status_code == 201:
-                flash("you can't see this information")
-                return render_template("login.html")
-            elif response.status_code == 202:
-                print("infromation recived")
-                json_response = response.json()
-                #TODO: parsing json to retrive this three information:
-                sent_message = ""
-                draft_message = ""
-                recived_message = ""
-                return render_template("mailbox.html", messages=recived_message, sendMessages=sent_message, draftMessages=draft_message)
-        except Exception as e:
-            print(e)
-    else:
-        return redirect('/login')
 
 
 @users.route('/users/', methods=['POST', 'GET'])
@@ -344,3 +368,173 @@ def delete_account():
             print(e)
 
     return render_template("delete.html")
+
+# #This route is to see the mailbox
+@users.route('/mailbox/', methods=['GET'])
+@login_required
+def inbox():
+    # '''
+    #  Shows the mailbox of the user divded into three parts
+    #  1) The Inbox part shows the received messages
+    #  2) The Sent part shows the messages that user sent
+    #  3) The Draft part shows the messages in the draft
+    #
+    #  It also provides the functionality for the user to delete future
+    #  messages if the user is lottery winner
+    # '''
+    
+
+    # look for filter
+    #payload_filter = dict(id=current_user)
+    try:
+        response = requests.get(USERS_ENDPOINT + "/profile_filter/"+str(current_user.id),
+                                    timeout=REQUESTS_TIMEOUT_SECONDS
+                                    )
+        if response.status_code == 201:
+            #filter recived
+            filter = response.json()['filter']
+        elif response.status_code == 202:
+            #no filter setting
+            filter = ""
+        elif response.status_code == 303:
+            #generic error
+            filter = ""
+    except Exception as e:
+        print(e)
+
+    payload = dict(id=str(current_user.id), filter=str(filter))
+    print("filter")
+    print(filter)
+    try:
+        print("message_endpoint")
+        print(MESSAGE_ENDPOINT)
+        response = requests.post(MESSAGE_ENDPOINT+"/mailbox",
+                                    json=payload,
+                                    timeout=REQUESTS_TIMEOUT_SECONDS
+                                    )
+        # response from mailbox microservice:
+        # {
+        #     sent: <msg1>,<msg2>
+        #     recived: <msg2>
+        #     draft: <msg1>
+        # }
+        if response.status_code == 201:
+            flash("you can't see this information")
+            return render_template("login.html")
+        elif response.status_code == 202:
+            print("infromation recived")
+            json_response = response.json()
+            sent_message = json_response['sent_message']
+            draft_message = json_response['draft_message']
+            recived_message = json_response['received_message']
+            print("rec_m")
+            print(recived_message)
+            print("sent_m")
+            print(sent_message)
+            print("draft_m")
+            print(draft_message)
+            return render_template("mailbox.html", messages=recived_message, sendMessages=sent_message, draftMessages=draft_message)
+    except Exception as e:
+        print(e)
+   
+
+
+@users.route('/send/', methods=['GET','POST'])
+@login_required  
+def send():
+    isDraft =False                                                  # The message by default is set as "NOT A DRAFT"
+    draftReciever = request.args.get("reciever")                    # take argument "reciever"
+    draftBody = request.args.get("body")                            # take argument "body"
+    isReply = request.args.get("reply")                             # take arument reply
+    draft_id = request.args.get('draft_id')                         # # take argument "draft_id"
+    form = SendForm()
+    if request.method == 'POST':
+        if form.data is not None and form.data['recipient'] is not None: #check if the receiver is None
+            # check for images
+            if request.files['image_file'] is not None:
+                image_binary=base64.b64encode(request.files['image_file'].read())
+            else:
+                image_binary = ""
+            #check if the send or draft buttom is pressed
+            if request.form['submit_button'] == "Send" or request.form['submit_button'] == 'Save as draft':
+                if draft_id is not None:
+                    delete_draft_message(draft_id)
+                if form.data['delivery_date'] is None: #if no date is specified, the current date is put
+                    delivery_date=date.today()
+                else:
+                    delivery_date=form.data['delivery_date']
+                body=form.data['body']
+                for nick in form.data['recipient']: #for each receiver that specified in the form create a message
+                    result=get_user_by_nickname(nick)
+                    receiver_id = result.id
+                    blacklist_response = blacklist_request(current_user.id, receiver_id)
+                    print("prima if")
+                    if blacklist_response == True:
+                        print("dentro if")
+                        if request.form['submit_button'] != 'Save as draft': #check whitch button is pressed and set the corresponding flag
+                            print("dentro send")
+                            send_message(str(current_user.id),current_user.nickname, str(receiver_id), nick, body, str(delivery_date),str(image_binary))
+                            print("message sent")
+                        else:
+                            #TODO create drfat message request
+                            pass
+            elif request.form['submit_button'] == 'Send as message':
+                if form.data['delivery_date'] is None:
+                    delivery_date=date.today()
+                else:
+                    delivery_date=form.data['delivery_date']
+                body=form.data['body']
+                for nick in form.data['recipient']:
+                    result=get_user_by_nickname(nick)
+                    receiver_id = result.id
+                    blacklist_response = blacklist_request(current_user.id, receiver_id)
+                    if blacklist_response == False:
+                        image= image_binary.decode('utf-8')
+                        #TODO send draft message request
+            elif request.form['submit_button'] == "Save changes":
+                body=form.data['body']
+                if form.data['delivery_date'] is None:
+                    delivery_date=date.today()
+                else:
+                    delivery_date=form.data['delivery_date']
+                image= image_binary.decode('utf-8')
+                for nick in form.data['recipient']:
+                    result=get_user_by_nickname(nick)
+                    receiver_id = result.id
+                    #TODO update draft message request
+                    pass
+            result = retrive_users(current_user.id)
+            new_user_list = []
+            for item in result:
+                user = User.build_from_json(item)
+                new_user_list.append(user.nickname)
+            dictUS = {}
+            for el in new_user_list:
+                dictUS[el] = 0
+            if draftReciever is not None:
+                dictUS[draftReciever] = 1
+            return render_template("send.html",  current_user=current_user, current_user_firstname=current_user.firstname, form=form, user_list=dictUS, is_submitted=True)
+        
+    else:
+        #show the form and fill it if it's to modify a draft message
+        
+        form.body.data=draftBody
+        result = retrive_users(current_user.id)
+        new_user_list = []
+        for item in result:
+            user = User.build_from_json(item)
+            new_user_list.append(user.nickname)
+        dictUS = {}
+        for el in new_user_list:
+            dictUS[el] = 0
+
+        if (isReply is not None and isReply) and (draftReciever is not None):
+            if draftReciever is not None:
+                form.body.data=str(draftReciever)+' wrote:\n'+str(draftBody)+'\n-----------------\n'
+
+        if draft_id is not None:
+            result = draft_message_info(draft_id)
+            dictUS[result.receiver_nickname] = 1
+
+        return render_template("send.html", current_user=current_user, current_user_firstname=current_user.firstname, form=form, user_list=dictUS, draft_id=draft_id), 200
+        
