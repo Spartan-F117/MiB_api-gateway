@@ -78,6 +78,60 @@ def send_message(sender_id, sender_nickname, receiver_id, receiver_nickname, bod
 
     return 200
 
+def draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image):
+    
+    print('trying drafting message....')
+
+    payload = dict(sender_id=sender_id, sender_nickname=sender_nickname,receiver_id=receiver_id,receiver_nickname=receiver_nickname, body=body, delivery_date=delivery_date, image=image)
+    try:
+        response = requests.post(MESSAGE_ENDPOINT + "/draft_message", json=payload, timeout=REQUESTS_TIMEOUT_SECONDS)
+        if response.status_code == 202:
+            print("message drafted")
+        else:
+            print("message not drafted")
+    except Exception as e:
+        print(e)
+    
+    print('received response for drafting message....')
+
+    return 200
+
+def send_draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image, draft_id):
+    
+    print('trying sending draft message....')
+
+    payload = dict(sender_id=sender_id, sender_nickname=sender_nickname,receiver_id=receiver_id,receiver_nickname=receiver_nickname, body=body, delivery_date=delivery_date, image=image, draft_id=draft_id)
+    try:
+        response = requests.post(MESSAGE_ENDPOINT + "/send_draft_message", json=payload, timeout=REQUESTS_TIMEOUT_SECONDS)
+        if response.status_code == 202:
+            print("draft message sent")
+        else:
+            print("draft message not sent")
+    except Exception as e:
+        print(e)
+    
+    print('received response for sending draft message....')
+
+    return 200
+
+def update_draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image, draft_id):
+    
+    print('trying updating draft message....')
+
+    payload = dict(sender_id=sender_id, sender_nickname=sender_nickname,receiver_id=receiver_id,receiver_nickname=receiver_nickname, body=body, delivery_date=delivery_date, image=image, draft_id=draft_id)
+    try:
+        response = requests.post(MESSAGE_ENDPOINT + "/update_draft_message", json=payload, timeout=REQUESTS_TIMEOUT_SECONDS)
+        if response.status_code == 202:
+            print("draft message update")
+        else:
+            print("draft message not update")
+    except Exception as e:
+        print(e)
+    
+    print('received response for updating draft message....')
+
+    return 200
+
 def retrive_users(id_):
 
     payload = dict(id=str(id_))
@@ -121,18 +175,18 @@ def get_user_by_nickname(nickname):
 
     return user
 
-def delete_draft_message(draft_id):
+def delete_message(draft_id):
 
-    print('trying deliting draft message....')
+    print('trying deleting message....')
 
     try:
-        response = requests.get("%s/delete_draft_message/%s" % (MESSAGE_ENDPOINT, draft_id),
+        response = requests.get("%s/delete_message/%s" % (MESSAGE_ENDPOINT, draft_id),
                                 timeout=REQUESTS_TIMEOUT_SECONDS)
 
     except Exception as e:
         print(e)
 
-    print('received response for delete draft message....')
+    print('received response for delete message....')
 
 def draft_message_info(draft_id):
     print('trying receiving draft message info....')
@@ -458,7 +512,7 @@ def send():
             #check if the send or draft buttom is pressed
             if request.form['submit_button'] == "Send" or request.form['submit_button'] == 'Save as draft':
                 if draft_id is not None:
-                    delete_draft_message(draft_id)
+                    delete_message(draft_id)
                 if form.data['delivery_date'] is None: #if no date is specified, the current date is put
                     delivery_date=date.today()
                 else:
@@ -468,16 +522,11 @@ def send():
                     result=get_user_by_nickname(nick)
                     receiver_id = result.id
                     blacklist_response = blacklist_request(current_user.id, receiver_id)
-                    print("prima if")
                     if blacklist_response == True:
-                        print("dentro if")
                         if request.form['submit_button'] != 'Save as draft': #check whitch button is pressed and set the corresponding flag
-                            print("dentro send")
                             send_message(str(current_user.id),current_user.nickname, str(receiver_id), nick, body, str(delivery_date),str(image_binary))
-                            print("message sent")
                         else:
-                            #TODO create drfat message request
-                            pass
+                            draft_message(str(current_user.id),current_user.nickname, str(receiver_id), nick, body, str(delivery_date),str(image_binary))
             elif request.form['submit_button'] == 'Send as message':
                 if form.data['delivery_date'] is None:
                     delivery_date=date.today()
@@ -488,9 +537,9 @@ def send():
                     result=get_user_by_nickname(nick)
                     receiver_id = result.id
                     blacklist_response = blacklist_request(current_user.id, receiver_id)
-                    if blacklist_response == False:
+                    if blacklist_response == True:
                         image= image_binary.decode('utf-8')
-                        #TODO send draft message request
+                        send_draft_message(str(current_user.id),current_user.nickname, str(receiver_id), nick, body, str(delivery_date),str(image_binary),str(draft_id))
             elif request.form['submit_button'] == "Save changes":
                 body=form.data['body']
                 if form.data['delivery_date'] is None:
@@ -501,8 +550,7 @@ def send():
                 for nick in form.data['recipient']:
                     result=get_user_by_nickname(nick)
                     receiver_id = result.id
-                    #TODO update draft message request
-                    pass
+                    update_draft_message(str(current_user.id),current_user.nickname, str(receiver_id), nick, body, str(delivery_date),str(image_binary),str(draft_id))
             result = retrive_users(current_user.id)
             new_user_list = []
             for item in result:
@@ -534,7 +582,7 @@ def send():
 
         if draft_id is not None:
             result = draft_message_info(draft_id)
-            dictUS[result.receiver_nickname] = 1
+            dictUS[result['draft_message']["receiver_nickname"]] = 1
 
         return render_template("send.html", current_user=current_user, current_user_firstname=current_user.firstname, form=form, user_list=dictUS, draft_id=draft_id), 200
         
