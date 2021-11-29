@@ -123,7 +123,6 @@ paths:
           description: user added to block_list
         303:
           description: error on adding user to report/blocking list
-  #Leonardo
   /send:
     get:
       tags:
@@ -185,8 +184,6 @@ paths:
           description: redirects to login page if the user isn't logged or to the mailbox page otherwise
         302:
           description: user will see the the page message.html
-
-  #Usman
   /calendar:
     get:
       tags: [ Message ]
@@ -208,9 +205,6 @@ paths:
           description: redirects to mailbox page if user dose not have enough lottery points
         400:
           description: if user is not logged, redirects to login page
-
-
-  #Filippo
   /deleteAccount:
     get:
       tags:
@@ -230,7 +224,6 @@ paths:
           description: password and user_id are valid
         301:
           description: invalid user_id, or user not logged.
-
   /profile:
     get:
       tags: [ Users ]
@@ -285,39 +278,22 @@ paths:
           description: filter applied correctly
   /lottery:
     get:
-      tags:
-        - Lottery
+      tags: [Lottery]
       summary: lottery part
-      operationId: lottery
       description: |
         play with the lottery
       responses:
-        200:
+        201:
           description: shill shows lottery.html page
         301:
           description: user not logged
     post:
-      tags:
-        - Lottery
+      tags: [ Lottery]
       summary: a user can participate to the lottery
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user_id:
-                  type: string
-                password:
-                  type: string
-              required:
-                - user_id
-                - password
+      description: |
+        play with the lottery
       responses:
         201:
           description: correclty enrolled to lottery
-        301:
-          description: Incorrect user information
-        202:
+        302:
           description: user already enrolled in the lottery

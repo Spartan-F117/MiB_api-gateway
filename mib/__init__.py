@@ -11,9 +11,6 @@ login = None
 debug_toolbar = None
 app = None
 
-# @app.before_requestdef
-# def make_session_permanent():
-#     session.permanent = True
 
 def create_app():
     """
