@@ -15,6 +15,8 @@ USERS_ENDPOINT = app.config['USERS_MS_URL']
 REQUESTS_TIMEOUT_SECONDS = 60
 MESSAGE_ENDPOINT = app.config['MESSAGE_MS_URL']
 
+POINT_NECESSARY = 12
+
 
 def add_to_blacklist(owner_blocklist, user_in_blacklist):
     payload = dict(id_owner=owner_blocklist, id_to_insert=user_in_blacklist)
@@ -220,6 +222,50 @@ def blacklist_request(sender_id, receiver_id):
         return False
     else:
         return True
+
+def delete_received_message(id):
+    print('trying deleting received message....')
+
+    try:
+        response = requests.get("%s/delete_received_message/%s" % (MESSAGE_ENDPOINT, id),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+
+    except Exception as e:
+        print(e)
+
+    print('received response for delete received message....')
+
+    return response.status_code
+
+def open_received_message(id):
+    print('trying opening received message....')
+
+    try:
+        response = requests.get("%s/open_received_message/%s" % (MESSAGE_ENDPOINT, id),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+
+    except Exception as e:
+        print(e)
+
+    print('received response for opening received message....')
+
+    json_response = response.json()
+    return json_response['received_message']  
+
+def open_send_message(id):
+    print('trying opening send message....')
+
+    try:
+        response = requests.get("%s/open_send_message/%s" % (MESSAGE_ENDPOINT, id),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+
+    except Exception as e:
+        print(e)
+
+    print('received response for opening send message....')
+
+    json_response = response.json()
+    return json_response['send_message']
 
 @users.route('/create_user/', methods=['POST', 'GET'])
 def create_user():
@@ -492,7 +538,6 @@ def inbox():
         print(e)
    
 
-
 @users.route('/send/', methods=['GET','POST'])
 @login_required  
 def send():
@@ -586,3 +631,34 @@ def send():
 
         return render_template("send.html", current_user=current_user, current_user_firstname=current_user.firstname, form=form, user_list=dictUS, draft_id=draft_id), 200
         
+
+@users.route("/message/<id>", methods=["GET", "POST"])
+@login_required  
+def message_view(id):
+    deletion = request.args.get("delete")
+    lottery = request.args.get("lottery")
+    print(deletion)
+    if deletion != None and deletion:
+        if lottery and current_user.lottery_points >= POINT_NECESSARY:
+            #TODO delete send message request
+            return redirect("/mailbox")
+        else:
+            result = delete_received_message(id)
+            if result == 200:
+                return redirect("/mailbox")
+            else:
+                return 'You can\'t delete this message!'
+    else:
+        # Received messages
+        message = open_received_message(id)
+        if message != None:
+                if message[0]['receiver_id'] == current_user.id:
+                    return render_template('message.html', message=message[0], mode='received')
+        # Sent messages (DON'T FILTER FOR DELETED MESSAGES OTHERWISE THE SENDER KNOWS THAT THE MESSAGE IS DELETED BY THE RECIPIENT)
+        message = open_send_message(id)
+        print(message)
+        if message != None:
+                if message[0]['sender_id'] == current_user.id:
+                    return render_template('message.html', message=message[0], mode='send')
+                else:
+            	    return 'You can\'t read this message!'
