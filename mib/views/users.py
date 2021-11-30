@@ -209,7 +209,7 @@ def blacklist_request(sender_id, receiver_id):
     print('trying receiving blacklist info....')
 
     try:
-        response = requests.get("%s/blacklist_info?sender_id=%s&receiver_id=%s" % (USERS_ENDPOINT, sender_id, receiver_id),
+        response = requests.get("%s/blacklist_info/%s/%s" % (USERS_ENDPOINT, sender_id, receiver_id),
                                 timeout=REQUESTS_TIMEOUT_SECONDS)
         json_payload = response.json()
 
@@ -218,6 +218,7 @@ def blacklist_request(sender_id, receiver_id):
 
     print('received response for blacklist info....')
 
+    print(response.status_code)
     if response.status_code == 200: #blacklist found
         return False
     else:
