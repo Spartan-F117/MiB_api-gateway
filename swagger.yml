@@ -186,14 +186,15 @@ paths:
           description: user will see the the page message.html
   /calendar:
     get:
-      tags: [ Message ]
+      tags:
+        - Message
       summary: Show calendar
       description: Shows sent and received messages to the user in the calendar
       responses:
-        302:
-          description: successfully renders the calendar page if the result of matching criteria is alright
-        400:
-          description: bad request. If user didn't logged it will be redirected to the login page
+        201:
+          description: user will not be able to see the calendar page, redirects to login page
+        202:
+          description: user will see the the page calendar.html
   /delete_messages:
     get:
       tags: [ Message ]
