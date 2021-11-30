@@ -12,8 +12,49 @@ users = Blueprint('users', __name__)
 
 LOTTERY_ENDPOINT = app.config['LOTTERY_MS_URL']
 USERS_ENDPOINT = app.config['USERS_MS_URL']
-REQUESTS_TIMEOUT_SECONDS = 60
 MESSAGE_ENDPOINT = app.config['MESSAGE_MS_URL']
+REQUESTS_TIMEOUT_SECONDS = 60
+
+def lottery_participant(id_user):
+    payload = dict(id=str(id_user))
+    try:
+        response = requests.post(LOTTERY_ENDPOINT+"/is_participant",
+                                 json=payload,
+                                 timeout=REQUESTS_TIMEOUT_SECONDS
+                                 )
+        if response.status_code == 201:
+            # user is yet a participant for monthly lottery
+            return True
+        elif response.status_code == 202:
+            # user is not yet a participant for monthly lottery
+            return False
+        else:
+            print("status code not defined")
+            return False
+    except Exception as e:
+        print(e)
+
+
+def send_partecipation_lottery(id_user):
+    payload = dict(id=str(id_user))
+    try:
+        print("invio richiesta alla lotteria")
+        response = requests.post(LOTTERY_ENDPOINT + "/join_lottery",
+                                 json=payload,
+                                 timeout=REQUESTS_TIMEOUT_SECONDS
+                                 )
+        print("risposta ricevuta dalla lotteria:"+str(response.status_code))
+        if response.status_code == 201:
+            # user inserted in monthly lottery
+            return True
+        elif response.status_code == 302:
+            # user is not inserted
+            return False
+        else:
+            print("status code not defined")
+            return False
+    except Exception as e:
+        print(e)
 
 POINT_NECESSARY = 12
 
@@ -636,7 +677,7 @@ def send():
             dictUS[result['draft_message']["receiver_nickname"]] = 1
 
         return render_template("send.html", current_user=current_user, current_user_firstname=current_user.firstname, form=form, user_list=dictUS, draft_id=draft_id), 200
-        
+       
 
 @users.route("/message/<id>", methods=["GET", "POST"])
 @login_required  
@@ -670,3 +711,22 @@ def message_view(id):
                     return render_template('message.html', message=message[0], mode='send')
                 else:
             	    return 'You can\'t read this message!'
+
+
+@users.route('/lottery/', methods=['GET', 'POST'])
+@login_required
+def lottery():
+    print("vedo se l'utente è un partecipante....")
+    participant = lottery_participant(current_user.id)
+
+    if request.method == "POST":
+        if not participant:
+            send_partecipation_lottery(current_user.id)
+            flash("You're participating to the lottery!")
+            return redirect("/profile")
+        else:
+            flash("You're already participating to the lottery!")
+            return redirect("/profile")
+    elif request.method == "GET":
+        return render_template("lottery.html", is_partecipating=participant)
+

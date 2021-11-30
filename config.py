@@ -21,16 +21,18 @@ class Config(object):
     )
 
     # lottery microservice
-    LOTTERY_MS_PROTOCOL = os.getenv('LOTTERY_MS_PROTOCOL','http')
+    LOTTERY_MS_PROTOCOL = os.getenv('LOTTERY_MS_PROTOCOL', 'http')
     LOTTERY_MS_HOST = os.getenv('LOTTERY_MS_HOST', 'localhost')
-    LOTTERY_MS_PORT = os.getenv('LOTTERY_MS_PORT', 5001)
+    LOTTERY_MS_PORT = os.getenv('LOTTERY_MS_PORT', 5004)
     LOTTERY_MS_URL = '%s://%s:%s' % (LOTTERY_MS_PROTOCOL, LOTTERY_MS_HOST, LOTTERY_MS_PORT)
 
+    # user microservice
     USERS_MS_PROTOCOL = os.getenv('USERS_MS_PROTOCOL', 'http')
     USERS_MS_HOST = os.getenv('USERS_MS_HOST', 'localhost')
     USERS_MS_PORT = os.getenv('USERS_MS_PORT', 5002)
     USERS_MS_URL = '%s://%s:%s' % (USERS_MS_PROTOCOL, USERS_MS_HOST, USERS_MS_PORT)
 
+    # message microservice
     MESSAGE_MS_PROTOCOL = os.getenv('MESSAGE_MS_PROTOCOL', 'http')
     MESSAGE_MS_HOST = os.getenv('MESSAGE_MS_HOST', 'localhost')
     MESSAGE_MS_PORT = os.getenv('MESSAGE_MS_PORT', 5003)
