@@ -56,6 +56,8 @@ def send_partecipation_lottery(id_user):
     except Exception as e:
         print(e)
 
+POINT_NECESSARY = 12
+
 
 def add_to_blacklist(owner_blocklist, user_in_blacklist):
     payload = dict(id_owner=owner_blocklist, id_to_insert=user_in_blacklist)
@@ -119,6 +121,60 @@ def send_message(sender_id, sender_nickname, receiver_id, receiver_nickname, bod
 
     return 200
 
+def draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image):
+    
+    print('trying drafting message....')
+
+    payload = dict(sender_id=sender_id, sender_nickname=sender_nickname,receiver_id=receiver_id,receiver_nickname=receiver_nickname, body=body, delivery_date=delivery_date, image=image)
+    try:
+        response = requests.post(MESSAGE_ENDPOINT + "/draft_message", json=payload, timeout=REQUESTS_TIMEOUT_SECONDS)
+        if response.status_code == 202:
+            print("message drafted")
+        else:
+            print("message not drafted")
+    except Exception as e:
+        print(e)
+    
+    print('received response for drafting message....')
+
+    return 200
+
+def send_draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image, draft_id):
+    
+    print('trying sending draft message....')
+
+    payload = dict(sender_id=sender_id, sender_nickname=sender_nickname,receiver_id=receiver_id,receiver_nickname=receiver_nickname, body=body, delivery_date=delivery_date, image=image, draft_id=draft_id)
+    try:
+        response = requests.post(MESSAGE_ENDPOINT + "/send_draft_message", json=payload, timeout=REQUESTS_TIMEOUT_SECONDS)
+        if response.status_code == 202:
+            print("draft message sent")
+        else:
+            print("draft message not sent")
+    except Exception as e:
+        print(e)
+    
+    print('received response for sending draft message....')
+
+    return 200
+
+def update_draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image, draft_id):
+    
+    print('trying updating draft message....')
+
+    payload = dict(sender_id=sender_id, sender_nickname=sender_nickname,receiver_id=receiver_id,receiver_nickname=receiver_nickname, body=body, delivery_date=delivery_date, image=image, draft_id=draft_id)
+    try:
+        response = requests.post(MESSAGE_ENDPOINT + "/update_draft_message", json=payload, timeout=REQUESTS_TIMEOUT_SECONDS)
+        if response.status_code == 202:
+            print("draft message update")
+        else:
+            print("draft message not update")
+    except Exception as e:
+        print(e)
+    
+    print('received response for updating draft message....')
+
+    return 200
+
 def retrive_users(id_):
 
     payload = dict(id=str(id_))
@@ -162,18 +218,18 @@ def get_user_by_nickname(nickname):
 
     return user
 
-def delete_draft_message(draft_id):
+def delete_message(draft_id):
 
-    print('trying deliting draft message....')
+    print('trying deleting message....')
 
     try:
-        response = requests.get("%s/delete_draft_message/%s" % (MESSAGE_ENDPOINT, draft_id),
+        response = requests.get("%s/delete_message/%s" % (MESSAGE_ENDPOINT, draft_id),
                                 timeout=REQUESTS_TIMEOUT_SECONDS)
 
     except Exception as e:
         print(e)
 
-    print('received response for delete draft message....')
+    print('received response for delete message....')
 
 def draft_message_info(draft_id):
     print('trying receiving draft message info....')
@@ -194,7 +250,7 @@ def blacklist_request(sender_id, receiver_id):
     print('trying receiving blacklist info....')
 
     try:
-        response = requests.get("%s/blacklist_info?sender_id=%s&receiver_id=%s" % (USERS_ENDPOINT, sender_id, receiver_id),
+        response = requests.get("%s/blacklist_info/%s/%s" % (USERS_ENDPOINT, sender_id, receiver_id),
                                 timeout=REQUESTS_TIMEOUT_SECONDS)
         json_payload = response.json()
 
@@ -203,10 +259,69 @@ def blacklist_request(sender_id, receiver_id):
 
     print('received response for blacklist info....')
 
+    print(response.status_code)
     if response.status_code == 200: #blacklist found
         return False
     else:
         return True
+
+def delete_received_message(id):
+    print('trying deleting received message....')
+
+    try:
+        response = requests.get("%s/delete_received_message/%s" % (MESSAGE_ENDPOINT, id),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+
+    except Exception as e:
+        print(e)
+
+    print('received response for delete received message....')
+
+    return response.status_code
+
+def open_received_message(id):
+    print('trying opening received message....')
+
+    try:
+        response = requests.get("%s/open_received_message/%s" % (MESSAGE_ENDPOINT, id),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+
+    except Exception as e:
+        print(e)
+
+    print('received response for opening received message....')
+
+    json_response = response.json()
+    return json_response['received_message']  
+
+def open_send_message(id):
+    print('trying opening send message....')
+
+    try:
+        response = requests.get("%s/open_send_message/%s" % (MESSAGE_ENDPOINT, id),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+
+    except Exception as e:
+        print(e)
+
+    print('received response for opening send message....')
+
+    json_response = response.json()
+    return json_response['send_message']
+
+def decrease_lottery_points(user_id):
+    print('trying decreasing user lottery points....')
+             
+    try:
+        response = requests.get("%s/decrease_lottery_points/%s" % (USERS_ENDPOINT, user_id),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+
+    except Exception as e:
+        print(e)
+
+    print('received response for decreasing user lottery points....')
+
+    return 200
 
 @users.route('/create_user/', methods=['POST', 'GET'])
 def create_user():
@@ -447,8 +562,6 @@ def inbox():
     print("filter")
     print(filter)
     try:
-        print("message_endpoint")
-        print(MESSAGE_ENDPOINT)
         response = requests.post(MESSAGE_ENDPOINT+"/mailbox",
                                     json=payload,
                                     timeout=REQUESTS_TIMEOUT_SECONDS
@@ -463,22 +576,14 @@ def inbox():
             flash("you can't see this information")
             return render_template("login.html")
         elif response.status_code == 202:
-            print("infromation recived")
             json_response = response.json()
             sent_message = json_response['sent_message']
             draft_message = json_response['draft_message']
             recived_message = json_response['received_message']
-            print("rec_m")
-            print(recived_message)
-            print("sent_m")
-            print(sent_message)
-            print("draft_m")
-            print(draft_message)
             return render_template("mailbox.html", messages=recived_message, sendMessages=sent_message, draftMessages=draft_message)
     except Exception as e:
         print(e)
    
-
 
 @users.route('/send/', methods=['GET','POST'])
 @login_required  
@@ -499,7 +604,7 @@ def send():
             #check if the send or draft buttom is pressed
             if request.form['submit_button'] == "Send" or request.form['submit_button'] == 'Save as draft':
                 if draft_id is not None:
-                    delete_draft_message(draft_id)
+                    delete_message(draft_id)
                 if form.data['delivery_date'] is None: #if no date is specified, the current date is put
                     delivery_date=date.today()
                 else:
@@ -509,16 +614,11 @@ def send():
                     result=get_user_by_nickname(nick)
                     receiver_id = result.id
                     blacklist_response = blacklist_request(current_user.id, receiver_id)
-                    print("prima if")
                     if blacklist_response == True:
-                        print("dentro if")
                         if request.form['submit_button'] != 'Save as draft': #check whitch button is pressed and set the corresponding flag
-                            print("dentro send")
                             send_message(str(current_user.id),current_user.nickname, str(receiver_id), nick, body, str(delivery_date),str(image_binary))
-                            print("message sent")
                         else:
-                            #TODO create drfat message request
-                            pass
+                            draft_message(str(current_user.id),current_user.nickname, str(receiver_id), nick, body, str(delivery_date),str(image_binary))
             elif request.form['submit_button'] == 'Send as message':
                 if form.data['delivery_date'] is None:
                     delivery_date=date.today()
@@ -529,9 +629,9 @@ def send():
                     result=get_user_by_nickname(nick)
                     receiver_id = result.id
                     blacklist_response = blacklist_request(current_user.id, receiver_id)
-                    if blacklist_response == False:
+                    if blacklist_response == True:
                         image= image_binary.decode('utf-8')
-                        #TODO send draft message request
+                        send_draft_message(str(current_user.id),current_user.nickname, str(receiver_id), nick, body, str(delivery_date),str(image_binary),str(draft_id))
             elif request.form['submit_button'] == "Save changes":
                 body=form.data['body']
                 if form.data['delivery_date'] is None:
@@ -542,8 +642,7 @@ def send():
                 for nick in form.data['recipient']:
                     result=get_user_by_nickname(nick)
                     receiver_id = result.id
-                    #TODO update draft message request
-                    pass
+                    update_draft_message(str(current_user.id),current_user.nickname, str(receiver_id), nick, body, str(delivery_date),str(image_binary),str(draft_id))
             result = retrive_users(current_user.id)
             new_user_list = []
             for item in result:
@@ -575,9 +674,43 @@ def send():
 
         if draft_id is not None:
             result = draft_message_info(draft_id)
-            dictUS[result.receiver_nickname] = 1
+            dictUS[result['draft_message']["receiver_nickname"]] = 1
 
         return render_template("send.html", current_user=current_user, current_user_firstname=current_user.firstname, form=form, user_list=dictUS, draft_id=draft_id), 200
+       
+
+@users.route("/message/<id>", methods=["GET", "POST"])
+@login_required  
+def message_view(id):
+    deletion = request.args.get("delete")
+    lottery = request.args.get("lottery")
+    print(deletion)
+    if deletion != None and deletion:
+        if lottery and current_user.lottery_points >= POINT_NECESSARY:
+            delete_message(id)
+            decrease_lottery_points(str(current_user.id))
+            current_user.lottery_points -= POINT_NECESSARY
+            return redirect("/mailbox")
+        else:
+            result = delete_received_message(id)
+            if result == 200:
+                return redirect("/mailbox")
+            else:
+                return 'You can\'t delete this message!'
+    else:
+        # Received messages
+        message = open_received_message(id)
+        if message != None:
+                if message[0]['receiver_id'] == current_user.id:
+                    return render_template('message.html', message=message[0], mode='received')
+        # Sent messages (DON'T FILTER FOR DELETED MESSAGES OTHERWISE THE SENDER KNOWS THAT THE MESSAGE IS DELETED BY THE RECIPIENT)
+        message = open_send_message(id)
+        print(message)
+        if message != None:
+                if message[0]['sender_id'] == current_user.id:
+                    return render_template('message.html', message=message[0], mode='send')
+                else:
+            	    return 'You can\'t read this message!'
 
 
 @users.route('/lottery/', methods=['GET', 'POST'])
@@ -596,3 +729,4 @@ def lottery():
             return redirect("/profile")
     elif request.method == "GET":
         return render_template("lottery.html", is_partecipating=participant)
+
