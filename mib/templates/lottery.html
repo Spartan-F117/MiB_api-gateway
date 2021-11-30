@@ -10,7 +10,7 @@
             </div>
             <div class="card-body">
                 <form action="" method="POST">
-                    {% if is_partecipating == 1 %}
+                    {% if is_partecipating == True %}
                         <div>YOU'RE ALREADY A CONTESTANT!</div>
                     {%else%}
                             <input class="btn btn-danger" type=submit name="submit_button" value='JOIN' onclick='alert("PARTECIPATING!!")' />

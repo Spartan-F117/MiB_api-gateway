@@ -71,7 +71,7 @@
             <div class="row">
                 <div style="width: 99%; float: left; padding: 10px; overflow: hidden;">
                     {% for message in messages: %}
-                        {% if not message[0].opened %}
+                        {% if not message["opened"] %}
                             <a class="list-group-item list-group-item-sR border-1 a_hover">
                         {% else %}
                             <a class="list-group-item list-group-item-sR border-1 div_hover">
@@ -79,33 +79,33 @@
                         <div class="row" class="row" style="float: right; margin-right: 1px;">
                             <div class="flex-grow-1 ml-3">
                                 <input style="margin-top:2px; margin-bottom: 7px;" type='button' class="btn btn-info" value='Open'
-                                    onclick='window.location.href = `/message/{{message[0].message_id}}`;' />
+                                    onclick='window.location.href = `/message/{{message["message_id"]}}`;' />
                             </div>
                             <div class="flex-grow-1 ml-3">
                                 <input style="margin-top:2px; margin-bottom: 7px;" type='button' class="btn btn-info" value='Forward' onclick='
-                                    window.location.href = `/send?body={{message[0].body}}`;' />
+                                    window.location.href = `/send?body={{message["body"]}}`;' />
                             </div>
                             <div class="flex-grow-1 ml-3">
                                 <input style="margin-top:2px; margin-bottom: 7px; margin-left: 10px;" type='button' class="btn btn-success" value='Reply' onclick='
-                                    window.location.href = `/send?reciever={{message[1].nickname}}&body={{message[0].body}}&reply=True`;' />
+                                    window.location.href = `/send?reciever={{message["sender_nickname"]}}&body={{message["body"]}}&reply=True`;' />
                             </div>
                             <div class="flex-grow-1 ml-3">
                                 <input style="margin-top:2px; margin-bottom: 7px; margin-left: 10px;" type='button' class="btn btn-danger" value='Delete' onclick='
-                                    window.location.href = `/message/{{message[0].message_id}}?delete=True`;' />
+                                    window.location.href = `/message/{{message["message_id"]}}?delete=True`;' />
                             </div>
                         </div>
                         <div class="row">
                             <div class="d-flex align-items-start">
                                 <div>
-                                    {{message[1].nickname}}
+                                    {{message["sender_nickname"]}}
                                 </div>
                                 <div style="margin-left: 100px;">
-                                    {{message[0].delivery_date}}
+                                    {{message["delivery_date"]}}
                                 </div>
                                 <div style="margin-left: 50px; max-width: 200px; max-height: 200px; overflow: hidden;">
-                                    {{message[0].body}}
+                                    {{message["body"]}}
                                     <figure id="imageResult" style="display: block;" class="image"> 
-                                        <img id="base64ImageForDisplay" alt="" src="data:image/png;base64,{{message[0].image}}" style="display: block;">
+                                        <img id="base64ImageForDisplay" alt="" src="data:image/png;base64,{{message['image']}}" style="display: block;">
                                     </figure>
                                 </div>
                             </div>
@@ -129,24 +129,24 @@
                         <a class="list-group-item list-group-item-sR border-1 div_hover">
                             <div class="row" style="float: right; margin-right: 1px;">
                                 <div>
-                                    <input style="margin-left: 10px;" type='button' class="btn btn-success" value='Open' onclick='window.location.href = `/message/{{message[0].message_id}}`;' />
+                                    <input style="margin-left: 10px;" type='button' class="btn btn-success" value='Open' onclick='window.location.href = `/message/{{message["message_id"]}}`;' />
                                 </div>
                                 <div>
                                     <input style="margin-left: 10px;" type='button' class="btn btn-info" value='Forward' onclick='
-                                        window.location.href = `/send?body={{message[0].body}}`;' />
+                                        window.location.href = `/send?body={{message["body"]}}`;' />
                                 </div>
                             </div>
                             <div class="row">
                                 <div>
-                                    {{message[1].nickname}}
+                                    {{message["receiver_nickname"]}}
                                 </div>
                                 <div style="margin-left: 100px;">
-                                    {{message[0].delivery_date}}
+                                    {{message["delivery_date"]}}
                                 </div>
                                 <div style="margin-left: 50px; max-width: 200px; max-height: 200px; overflow: hidden;">
-                                    {{message[0].body}}
+                                    {{message["body"]}}
                                     <figure id="imageResult" style="display: block;" class="image"> 
-                                        <img id="base64ImageForDisplay" alt="" src="data:image/png;base64,{{message[0].image}}" style="display: block;">
+                                        <img id="base64ImageForDisplay" alt="" src="data:image/png;base64,{{message['image']}}" style="display: block;">
                                     </figure>
                                 </div>
                             </div>
@@ -164,17 +164,17 @@
                             <div class="row" style="float: right; margin-right: 1px;">
                                 <div>
                                     <input style="margin-top:2px; margin-bottom: 7px;" class="btn btn-danger" type='button' value='Edit' onclick='
-                                        window.location.href = `/send?draft_id={{message[0].message_id}}`;' />
+                                        window.location.href = `/send?draft_id={{message["message_id"]}}&body={{message["body"]}}`;' />
                                 </div>
                             </div>
                             <div class="row">
                                 <div>
-                                    {{message[1].nickname}}
+                                    {{message["receiver_nickname"]}}
                                 </div>
                                 <div id ="ID1"style="margin-left: 50px; max-width: 200px; max-height: 200px; overflow: hidden;">
-                                    {{message[0].body}}
+                                    {{message["body"]}}
                                     <figure id="imageResult" style="display: block;" class="image"> 
-                                        <img id="base64ImageForDisplay" alt="" src="data:image/png;base64,{{message[0].image}}" style="display: block;">
+                                        <img id="base64ImageForDisplay" alt="" src="data:image/png;base64,{{message['image']}}" style="display: block;">
                                     </figure>
                                 </div>
                             </div>    
