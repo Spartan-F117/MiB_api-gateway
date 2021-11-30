@@ -525,6 +525,37 @@ def delete_account():
 
     return render_template("delete.html")
 
+
+@users.route('/calendar')
+def calendar():
+    '''
+        Shows sent and received messages to the user in the calendar.
+    '''
+    if current_user is not None and hasattr(current_user, 'id'):
+        payload = dict(id=current_user)
+        try:
+            response = requests.post(MESSAGE_ENDPOINT+"/calendar",
+                                     json=payload,
+                                     timeout=REQUESTS_TIMEOUT_SECONDS
+                                     )
+            print('received response for calendar')
+            json_response = response.json()
+            events = json_response['events']
+
+            if response.status_code == 302:
+                print("successfully render template to calendar page")
+                return render_template('calendar.html', events = events)
+            elif response.status_code == 400:
+                print("user not logged")
+                return redirect('/login')
+        except Exception as e:
+            print(e)
+        
+        return render_template('calendar.html')
+    else:
+        return redirect('/login')
+
+      
 # #This route is to see the mailbox
 @users.route('/mailbox/', methods=['GET'])
 @login_required
