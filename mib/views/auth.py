@@ -17,8 +17,18 @@ REQUESTS_TIMEOUT_SECONDS = 60
 USERS_ENDPOINT = app.config['USERS_MS_URL']
 
 
-def send_logout_request():
-    pass
+def send_logout_request(user_email):
+    
+    print('trying logout user....')
+             
+    try:
+        response = requests.get("%s/logout/%s" % (USERS_ENDPOINT, user_email),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+       
+    except Exception as e:
+        print(e)
+
+    print('received response for logout user ....')
 
 
 # This is the route to do the login, in the login.html page there is a form and the information
@@ -65,6 +75,6 @@ def re_login():
 @auth.route('/logout')
 @login_required
 def logout():
-    send_logout_request()
+    send_logout_request(current_user.email)
     logout_user()
     return redirect('/')
