@@ -267,6 +267,20 @@ def open_send_message(id):
     json_response = response.json()
     return json_response['send_message']
 
+def decrease_lottery_points(user_id):
+    print('trying decreasing user lottery points....')
+             
+    try:
+        response = requests.get("%s/decrease_lottery_points/%s" % (USERS_ENDPOINT, user_id),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+
+    except Exception as e:
+        print(e)
+
+    print('received response for decreasing user lottery points....')
+
+    return 200
+
 @users.route('/create_user/', methods=['POST', 'GET'])
 def create_user():
     '''
@@ -506,8 +520,6 @@ def inbox():
     print("filter")
     print(filter)
     try:
-        print("message_endpoint")
-        print(MESSAGE_ENDPOINT)
         response = requests.post(MESSAGE_ENDPOINT+"/mailbox",
                                     json=payload,
                                     timeout=REQUESTS_TIMEOUT_SECONDS
@@ -522,17 +534,10 @@ def inbox():
             flash("you can't see this information")
             return render_template("login.html")
         elif response.status_code == 202:
-            print("infromation recived")
             json_response = response.json()
             sent_message = json_response['sent_message']
             draft_message = json_response['draft_message']
             recived_message = json_response['received_message']
-            print("rec_m")
-            print(recived_message)
-            print("sent_m")
-            print(sent_message)
-            print("draft_m")
-            print(draft_message)
             return render_template("mailbox.html", messages=recived_message, sendMessages=sent_message, draftMessages=draft_message)
     except Exception as e:
         print(e)
@@ -640,7 +645,9 @@ def message_view(id):
     print(deletion)
     if deletion != None and deletion:
         if lottery and current_user.lottery_points >= POINT_NECESSARY:
-            #TODO delete send message request
+            delete_message(id)
+            decrease_lottery_points(str(current_user.id))
+            current_user.lottery_points -= POINT_NECESSARY
             return redirect("/mailbox")
         else:
             result = delete_received_message(id)
