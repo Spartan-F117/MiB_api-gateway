@@ -465,7 +465,6 @@ def profile():
                 return render_template("profile_info.html", current_user=current_user,user_filter_list=user_filter_list)
             else: #if the user presses the other button he changes is information with the info in the form
                 print("change info branch")
-                #TODO richiesta modifica info
                 payload = dict(new_password=new_password, firstname=firstname,
                            surname=lastname, birthday=birthday,
                            old_password=old_password, location=location, user_id=current_user.id)
