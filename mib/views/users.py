@@ -15,6 +15,8 @@ USERS_ENDPOINT = app.config['USERS_MS_URL']
 MESSAGE_ENDPOINT = app.config['MESSAGE_MS_URL']
 REQUESTS_TIMEOUT_SECONDS = 60
 
+POINT_NECESSARY = 1
+
 def lottery_participant(id_user):
     payload = dict(id=str(id_user))
     try:
@@ -55,8 +57,6 @@ def send_partecipation_lottery(id_user):
             return False
     except Exception as e:
         print(e)
-
-POINT_NECESSARY = 12
 
 
 def add_to_blacklist(owner_blocklist, user_in_blacklist):
@@ -103,6 +103,7 @@ def add_to_reportlist(owner_reportlist, user_in_reportlist):
     except Exception as e:
         print(e)
 
+
 def send_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image):
     
     print('trying sending message....')
@@ -120,6 +121,7 @@ def send_message(sender_id, sender_nickname, receiver_id, receiver_nickname, bod
     print('received response for sending message....')
 
     return 200
+
 
 def draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image):
     
@@ -139,6 +141,7 @@ def draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, bo
 
     return 200
 
+
 def send_draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image, draft_id):
     
     print('trying sending draft message....')
@@ -157,6 +160,7 @@ def send_draft_message(sender_id, sender_nickname, receiver_id, receiver_nicknam
 
     return 200
 
+
 def update_draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image, draft_id):
     
     print('trying updating draft message....')
@@ -174,6 +178,7 @@ def update_draft_message(sender_id, sender_nickname, receiver_id, receiver_nickn
     print('received response for updating draft message....')
 
     return 200
+
 
 def retrive_users(id_):
 
@@ -198,6 +203,7 @@ def retrive_users(id_):
     except Exception as e:
         print(e)
 
+
 def get_user_by_nickname(nickname):
 
     print('trying receiving user id from nickname....')
@@ -218,6 +224,7 @@ def get_user_by_nickname(nickname):
 
     return user
 
+
 def delete_message(draft_id):
 
     print('trying deleting message....')
@@ -230,6 +237,7 @@ def delete_message(draft_id):
         print(e)
 
     print('received response for delete message....')
+
 
 def draft_message_info(draft_id):
     print('trying receiving draft message info....')
@@ -245,6 +253,7 @@ def draft_message_info(draft_id):
     print('received response for draft message info....')
 
     return json_payload
+
 
 def blacklist_request(sender_id, receiver_id):
     print('trying receiving blacklist info....')
@@ -265,6 +274,7 @@ def blacklist_request(sender_id, receiver_id):
     else:
         return True
 
+
 def delete_received_message(id):
     print('trying deleting received message....')
 
@@ -278,6 +288,7 @@ def delete_received_message(id):
     print('received response for delete received message....')
 
     return response.status_code
+
 
 def open_received_message(id):
     print('trying opening received message....')
@@ -294,6 +305,7 @@ def open_received_message(id):
     json_response = response.json()
     return json_response['received_message']  
 
+
 def open_send_message(id):
     print('trying opening send message....')
 
@@ -308,6 +320,7 @@ def open_send_message(id):
 
     json_response = response.json()
     return json_response['send_message']
+
 
 def decrease_lottery_points(user_id):
     print('trying decreasing user lottery points....')
@@ -465,7 +478,6 @@ def profile():
                 return render_template("profile_info.html", current_user=current_user,user_filter_list=user_filter_list)
             else: #if the user presses the other button he changes is information with the info in the form
                 print("change info branch")
-                #TODO richiesta modifica info
                 payload = dict(new_password=new_password, firstname=firstname,
                            surname=lastname, birthday=birthday,
                            old_password=old_password, location=location, user_id=current_user.id)
@@ -699,7 +711,6 @@ def send():
             if draftReciever is not None:
                 dictUS[draftReciever] = 1
             return render_template("send.html",  current_user=current_user, current_user_firstname=current_user.firstname, form=form, user_list=dictUS, is_submitted=True)
-        
     else:
         #show the form and fill it if it's to modify a draft message
         
