@@ -532,28 +532,44 @@ def calendar():
     '''
         Shows sent and received messages to the user in the calendar.
     '''
-    payload = dict(id=str(current_user.id))
-    try:
-        response = requests.post(MESSAGE_ENDPOINT+"/calendar",
-                                 json=payload,
-                                 timeout=REQUESTS_TIMEOUT_SECONDS
-                                 )
-        print('received response for calendar')
-        json_response = response.json()
-        events = json_response['events']
 
-        if response.status_code == 302:
-            print("successfully render template to calendar page")
-            return render_template('calendar.html', events=events)
-        elif response.status_code == 400:
-            print("user not logged")
-            return redirect('/login')
+    try:
+        response = requests.get(USERS_ENDPOINT + "/profile_filter/"+str(current_user.id),
+                                    timeout=REQUESTS_TIMEOUT_SECONDS
+                                    )
+        if response.status_code == 201:
+            #filter recived
+            filter = response.json()['filter']
+        elif response.status_code == 202:
+            #no filter setting
+            filter = ""
+        elif response.status_code == 303:
+            #generic error
+            filter = ""
     except Exception as e:
         print(e)
 
-    return render_template('calendar.html')
+    payload = dict(id=str(current_user.id), filter=str(filter))
+    print("filter")
+    print(filter)
+    try:
+        response = requests.post(MESSAGE_ENDPOINT+"/calendar",
+                                    json=payload,
+                                    timeout=REQUESTS_TIMEOUT_SECONDS
+                                    )
+        
+        if response.status_code == 201:
+            flash("you can't see this information")
+            return render_template("login.html")
+        elif response.status_code == 202:
+            json_response = response.json()
+            events = json_response['events']
+            print("successfully render template to calendar page")
+            return render_template('calendar.html', events=events)
+    except Exception as e:
+        print(e)
 
-      
+
 # #This route is to see the mailbox
 @users.route('/mailbox/', methods=['GET'])
 @login_required
