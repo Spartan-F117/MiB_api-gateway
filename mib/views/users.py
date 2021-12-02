@@ -336,6 +336,7 @@ def decrease_lottery_points(user_id):
 
     return 200
 
+
 @users.route('/create_user/', methods=['POST', 'GET'])
 def create_user():
     '''
@@ -431,6 +432,7 @@ def user():
 
 
 @users.route('/profile', methods=['GET','POST'])
+@login_required
 def profile():
     """
         This functionality allows to users to view the user's profile.
@@ -439,68 +441,67 @@ def profile():
         If the user who try to access this service is not logged, will be render in the
         'home' page
     """
-    if current_user is not None and hasattr(current_user, 'id'): #check if the user is logged
-        if request.method == 'GET': #filter is asked
-            
-            #payload = dict(user_id=current_user.id)
-            print('trying seeing user filter....')
-            response = requests.get(USERS_ENDPOINT + '/profile_filter/'+str(current_user.id),
+
+    if request.method == 'GET': #filter is asked
+
+        #payload = dict(user_id=current_user.id)
+        print('trying seeing user filter....')
+        response = requests.get(USERS_ENDPOINT + '/profile_filter/'+str(current_user.id),
+                                    timeout=REQUESTS_TIMEOUT_SECONDS
+                                    )
+        print('received response for user filter....')
+        json_response = response.json()
+        print(json_response)
+        print("filtri: "+json_response['filter'])
+        user_filter_list = json_response['filter']
+
+        return render_template("profile_info.html", current_user=current_user,user_filter_list=user_filter_list)
+    else: #apply the modification in the form
+        firstname = request.form.get('firstname')
+        lastname = request.form.get('surname')
+        new_password = request.form.get('new_password')
+        old_password = request.form.get('old_password')
+        birthday = str(request.form.get('birthday'))
+        location = request.form.get('location')
+        filter = request.form.get('filter')
+        if 'filter' in request.form: #if the user presses the filter button i change the word filter
+            print("change filter branch")
+
+            payload = dict(filter=filter, user_id=current_user.id)
+            print('trying updating user filter....')
+            response = requests.post(USERS_ENDPOINT + '/change_filter',
+                                        json=payload,
                                         timeout=REQUESTS_TIMEOUT_SECONDS
                                         )
-            print('received response for user filter....')
+            print('received response for update filter....')
             json_response = response.json()
-            print(json_response)
-            print("filtri: "+json_response['filter'])
             user_filter_list = json_response['filter']
 
             return render_template("profile_info.html", current_user=current_user,user_filter_list=user_filter_list)
-        else: #apply the modification in the form
-            firstname = request.form.get('firstname')
-            lastname = request.form.get('surname')
-            new_password = request.form.get('new_password')
-            old_password = request.form.get('old_password')
-            birthday = str(request.form.get('birthday'))
-            location = request.form.get('location')
-            filter = request.form.get('filter')
-            if 'filter' in request.form: #if the user presses the filter button i change the word filter
-                print("change filter branch")
-    
-                payload = dict(filter=filter, user_id=current_user.id)
-                print('trying updating user filter....')
-                response = requests.post(USERS_ENDPOINT + '/change_filter',
-                                            json=payload,
-                                            timeout=REQUESTS_TIMEOUT_SECONDS
-                                            )
-                print('received response for update filter....')
-                json_response = response.json()
-                user_filter_list = json_response['filter']
+        else: #if the user presses the other button he changes is information with the info in the form
+            print("change info branch")
+            payload = dict(new_password=new_password, firstname=firstname,
+                       surname=lastname, birthday=birthday,
+                       old_password=old_password, location=location, user_id=current_user.id)
 
-                return render_template("profile_info.html", current_user=current_user,user_filter_list=user_filter_list)
-            else: #if the user presses the other button he changes is information with the info in the form
-                print("change info branch")
-                payload = dict(new_password=new_password, firstname=firstname,
-                           surname=lastname, birthday=birthday,
-                           old_password=old_password, location=location, user_id=current_user.id)
-                
-                print('trying updating user info....')
-                response = requests.post(USERS_ENDPOINT + '/change_info',
-                                            json=payload,
-                                            timeout=REQUESTS_TIMEOUT_SECONDS
-                                            )
-                print('received response for update info....')
-                json_response = response.json()
-                user_filter_list = json_response['filter']
+            print('trying updating user info....')
+            response = requests.post(USERS_ENDPOINT + '/change_info',
+                                        json=payload,
+                                        timeout=REQUESTS_TIMEOUT_SECONDS
+                                        )
+            print('received response for update info....')
+            json_response = response.json()
+            user_filter_list = json_response['filter']
 
-                status = response.status_code
+            status = response.status_code
 
-                if status == 201:
-                    print("info updated")
-                    return redirect('/profile')
-                else:
-                    print("wrong password")
-                return render_template("profile_info.html", current_user=current_user, user_filter_list=user_filter_list)
-    else:
-        return redirect('/login')
+            if status == 201:
+                print("info updated")
+                return redirect('/profile')
+            else:
+                print("wrong password")
+            return render_template("profile_info.html", current_user=current_user, user_filter_list=user_filter_list)
+
 
 
 # This route is to delete an account
@@ -786,15 +787,18 @@ def lottery():
     elif request.method == "GET":
         return render_template("lottery.html", is_partecipating=participant)
 
+
 @users.route('/delete_messages/')
 @login_required
 def delete_messages():
     print("clicked delete messages....")
-    participant = lottery_participant(current_user.id)
+    user = UserManager.get_user_by_id(current_user.id)
+    lottery_point_user = user.extra_data["lottery_points"]
 
-    if participant:
-        flash("participating to the lottery!")
+    print("user info retrive in delete messages - points lottery")
+    print(lottery_point_user)
 
+    if int(lottery_point_user) >= POINT_NECESSARY:
         payload = dict(id=str(current_user.id), filter="")
         try:
             response = requests.post(MESSAGE_ENDPOINT+"/mailbox",
@@ -808,10 +812,14 @@ def delete_messages():
             elif response.status_code == 202:
                 json_response = response.json()
                 sent_message = json_response['sent_message']
+                list_final_sent_message = []
+                for item in sent_message:
+                    if datetime.strptime(item["delivery_date"],'%Y-%m-%d').date() > date.today():
+                        list_final_sent_message.append(item)
         except Exception as e:
             print(e)
 
-        return render_template("delete_messages.html", futureMessages=sent_message)
+        return render_template("delete_messages.html", futureMessages=list_final_sent_message)
 
-    print("not participent!")
+    print("not authorized to delete message!")
     return render_template("notParticipent.html")
