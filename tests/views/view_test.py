@@ -2,9 +2,13 @@ from datetime import *
 import unittest
 from faker import Faker
 from random import choice, randint
+
+from flask_login.utils import login_user
 from mib.__init__  import *
 from mib.__init__ import app as TestedApp
 import io
+from mib.auth.user import User
+from flask_login import  current_user
 
 LOGIN_OK = 200
 LOGIN_FAIL = 201
@@ -81,6 +85,24 @@ class ViewTest(unittest.TestCase):
                 'date_of_birth': '1/01/2000',
             }
             r3 = self.client.post(URL, data=payload)
+            
+            payload_test = {
+                'id': '1',
+                'email': 'example3@email.it',
+                'password': 'pass3',
+                'nickname': 'nick3',
+                'firstname': 'name3',
+                'lastname': 'last3',
+                'location': 'location3',
+                'date_of_birth': '1/01/2000',
+                'is_active':'False',
+                'authenticated': 'False',
+                'is_anonymous': 'False',
+                'is_admin': 'False'
+            }
+            user= User.build_from_json(payload_test)
+
+            user.__str__()
             
             assert True #True because the user could be just created
 
@@ -375,34 +397,44 @@ class ViewTest(unittest.TestCase):
         assert r.status_code == 200
 
 #3) delete account post
-    # def test_zy_delete_account_post(self):
+    def test_zy_delete_account_post(self):
 
-    #     URL = '/create_user/'
-    #     payload_create = {
-    #         'email': 'example5@email.it',
-    #         'password': 'pass5',
-    #         'nickname': 'nick5',
-    #         'firstname': 'name5',
-    #         'lastname': 'last5',
-    #         'location': 'location5',
-    #         'date_of_birth': '1/01/2000'
-    #     }
-        # r1 = self.client.post(URL, data=payload_create)
+        URL = '/create_user/'
+        payload_create = {
+            'email': 'example100@email.it',
+            'password': 'pass100',
+            'nickname': 'nick100',
+            'firstname': 'name100',
+            'lastname': 'last100',
+            'location': 'location100',
+            'date_of_birth': '1/01/2000'
+        }
+        r1 = self.client.post(URL, data=payload_create)
 
-        # URL_login = '/login/'
-        # payload_login = {
-        #     'email': 'example5@email.it',
-        #     'password': 'pass5'
-        # }
-        # r_login = self.client.post(URL_login, data=payload_login)
-        # URL = '/deleteAccount/'
-        # payload = {
-        #     'confirm_button' : 'Delete my account'
-        # }
-        # r = self.client.post(URL, data=payload)
-        # assert r.status_code == 200
+        payload_test = {
+                'id': '1000s',
+                'email': 'example100@email.it',
+                'password': 'pass100',
+                'nickname': 'nick100',
+                'firstname': 'name100',
+                'lastname': 'last100',
+                'location': 'location100',
+                'date_of_birth': '1/01/2000',
+                'is_active':'False',
+                'authenticated': 'False',
+                'is_anonymous': 'False',
+                'is_admin': 'False'
+            }
+        user= User.build_from_json(payload_test)
+        login_user(user)
+        URL = '/deleteAccount/'
+        payload = {
+            'confirm_button' : 'Delete my account'
+        }
+        r = self.client.post(URL, data=payload)
+        assert r.status_code == 200
 
-# #test home
+#test home
 
 #1) home logged
     def test_home(self):
