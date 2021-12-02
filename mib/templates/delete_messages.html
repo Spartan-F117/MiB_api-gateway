@@ -26,7 +26,7 @@
                 <a class="list-group-item list-group-item-sR border-1" style="background-color:#ccc;">
                     <div class="d-flex align-items-start">
                         <div class="flex-grow-1 ml-3">
-                            {{message[1].nickname}}
+                            {{message.receiver_nickname}}
                         </div>
                     </div>
                 </a>
@@ -39,7 +39,7 @@
                 <a class="list-group-item list-group-item-sD border-1" style="background-color:#ccc;">
                     <div class="d-flex align-items-start">
                         <div class="flex-grow-1 ml-3">
-                            {{message[0].delivery_date}}
+                            {{message.delivery_date}}
                         </div>
                     </div>
                 </a>
@@ -52,7 +52,7 @@
                 <a class="list-group-item list-group-item-sB border-1" style="background-color:#ccc;">
                     <div class="d-flex align-items-start">
                         <div class="flex-grow-1 ml-3">
-                            {{message[0].body}}
+                            {{message.body}}
                         </div>
                     </div>
                 </a>
@@ -65,7 +65,7 @@
                     <div class="flex-grow-1 ml-3">
                         <input style="margin-top:2px; margin-bottom: 7px; margin-left: 10px;" type='button' class="btn btn-success" value='Delete' onclick='
                              alert(`Message Deleted!`);
-                            window.location.href = `/message/{{message[0].message_id}}?delete=True&lottery=True`;' />
+                            window.location.href = `/message/{{message.message_id}}?delete=True&lottery=True`;' />
                     </div>
                 </div>
             {% endfor %}
