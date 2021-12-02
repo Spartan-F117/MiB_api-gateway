@@ -200,12 +200,10 @@ paths:
       tags: [ Message ]
       summary: show delete_messages page
       responses:
-        200:
-          description: successfully renders to delete_messages page if user has enough lottery points
-        203:
-          description: redirects to mailbox page if user dose not have enough lottery points
-        400:
-          description: if user is not logged, redirects to login page
+        201:
+          description: show delete messages page
+        301:
+          description: user not logged
   /deleteAccount:
     get:
       tags:

@@ -786,3 +786,32 @@ def lottery():
     elif request.method == "GET":
         return render_template("lottery.html", is_partecipating=participant)
 
+@users.route('/delete_messages/')
+@login_required
+def delete_messages():
+    print("clicked delete messages....")
+    participant = lottery_participant(current_user.id)
+
+    if participant:
+        flash("participating to the lottery!")
+
+        payload = dict(id=str(current_user.id), filter="")
+        try:
+            response = requests.post(MESSAGE_ENDPOINT+"/mailbox",
+                                        json=payload,
+                                        timeout=REQUESTS_TIMEOUT_SECONDS
+                                        )
+
+            if response.status_code == 201:
+                flash("you can't see this information")
+                return render_template("login.html")
+            elif response.status_code == 202:
+                json_response = response.json()
+                sent_message = json_response['sent_message']
+        except Exception as e:
+            print(e)
+
+        return render_template("delete_messages.html", futureMessages=sent_message)
+
+    print("not participent!")
+    return render_template("notParticipent.html")
