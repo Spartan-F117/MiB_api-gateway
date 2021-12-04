@@ -7,8 +7,9 @@ from flask_login.utils import login_user
 from mib.__init__  import *
 from mib.__init__ import app as TestedApp
 import io
-from mib.auth.user import User
 from flask_login import  current_user
+
+
 
 LOGIN_OK = 200
 LOGIN_FAIL = 201
@@ -27,6 +28,19 @@ class ViewTest(unittest.TestCase):
         self.client = self.app.test_client()
         from mib.rao.user_manager import UserManager
         self.user_manager = UserManager
+        from mib.auth.user import User
+        self.user = User
+        from mib.views.users import lottery_participant as lottery
+        self.lottery = lottery
+        from mib.views.users import send_partecipation_lottery as send_lottery
+        self.send_lottery = send_lottery
+        from mib.views.users import decrease_lottery_points as decrease_lottery
+        self.decrease_lottery = decrease_lottery
+        from mib.views.users import draft_message_info as draft_message_info
+        self.draft_message_info = draft_message_info
+        from mib.views.users import delete_message as delete_message
+        self.delete_message = delete_message
+
     
     def generate_user(self):
         """Generates a random user, depending on the type
@@ -100,7 +114,7 @@ class ViewTest(unittest.TestCase):
                 'is_anonymous': 'False',
                 'is_admin': 'False'
             }
-            user= User.build_from_json(payload_test)
+            user= self.user.build_from_json(payload_test)
 
             user.__str__()
             
@@ -254,6 +268,7 @@ class ViewTest(unittest.TestCase):
         r = self.client.get(URL)
         assert r.status_code == 200
 
+
 # #test draft_id 
 
 #3) draft email
@@ -276,6 +291,7 @@ class ViewTest(unittest.TestCase):
         }
         r = self.client.post(URL, data=payload)
         assert r.status_code == 200
+
 
 
 #7)test send as message
@@ -324,7 +340,7 @@ class ViewTest(unittest.TestCase):
 # #test profile
 
 #1) change info
-    def test_change_info(self):
+    def test_za_change_info(self):
 
             URL_login = '/login/'
             payload_login = {
@@ -336,8 +352,10 @@ class ViewTest(unittest.TestCase):
             payload = {
                 'firstname': 'name_test',
                 'surname': 'surname_test',
-                'new_password': 'pass_test',
-                'old_password': 'pass1',
+                'birthday': '',
+                'location': 'livorno',
+                'new_password': 'pass1',
+                'old_password': 'pass',
                 'submit_button': 'Save changes',
             }
             r = self.client.post(URL, data=payload)
@@ -396,43 +414,43 @@ class ViewTest(unittest.TestCase):
         r = self.client.get(URL)
         assert r.status_code == 200
 
-#3) delete account post
-    def test_zy_delete_account_post(self):
+# #3) delete account post
+#     def test_zy_delete_account_post(self):
 
-        URL = '/create_user/'
-        payload_create = {
-            'email': 'example100@email.it',
-            'password': 'pass100',
-            'nickname': 'nick100',
-            'firstname': 'name100',
-            'lastname': 'last100',
-            'location': 'location100',
-            'date_of_birth': '1/01/2000'
-        }
-        r1 = self.client.post(URL, data=payload_create)
+#         URL = '/create_user/'
+#         payload_create = {
+#             'email': 'example100@email.it',
+#             'password': 'pass100',
+#             'nickname': 'nick100',
+#             'firstname': 'name100',
+#             'lastname': 'last100',
+#             'location': 'location100',
+#             'date_of_birth': '1/01/2000'
+#         }
+#         r1 = self.client.post(URL, data=payload_create)
 
-        payload_test = {
-                'id': '1000s',
-                'email': 'example100@email.it',
-                'password': 'pass100',
-                'nickname': 'nick100',
-                'firstname': 'name100',
-                'lastname': 'last100',
-                'location': 'location100',
-                'date_of_birth': '1/01/2000',
-                'is_active':'False',
-                'authenticated': 'False',
-                'is_anonymous': 'False',
-                'is_admin': 'False'
-            }
-        user= User.build_from_json(payload_test)
-        login_user(user)
-        URL = '/deleteAccount/'
-        payload = {
-            'confirm_button' : 'Delete my account'
-        }
-        r = self.client.post(URL, data=payload)
-        assert r.status_code == 200
+#         payload_test = {
+#             'id': '1000',
+#             'email': 'example100@email.it',
+#             'password': 'pass100',
+#             'nickname': 'nick100',
+#             'firstname': 'name100',
+#             'lastname': 'last100',
+#             'location': 'location100',
+#             'date_of_birth': '1/01/2000',
+#             'is_active':'False',
+#             'authenticated': 'False',
+#             'is_anonymous': 'False',
+#             'is_admin': 'False'
+#         }
+#         # user = self.user.build_from_json(payload_test)
+#         # login_user(user)
+#         URL = '/deleteAccount/'
+#         payload = {
+#             'confirm_button' : 'Delete my account'
+#         }
+#         r = self.client.post(URL, data=payload)
+#         assert r.status_code == 200
 
 #test home
 
@@ -503,9 +521,27 @@ class ViewTest(unittest.TestCase):
             # second registration
             r = self.client.post(URL_LOTTERY)
             assert r.status_code==302
+    
+    def test_lottery_partecipant(self):
+        r = self.lottery()
+        assert r == False
+
+    def test_send_lottery_partecipant(self):
+        r = self.send_lottery()
+        assert r == False
+
+    def test_decrease_lottery_points(self):
+        r = self.decrease_lottery()
+        assert r == 200
+
+    def test_draft_message_info(self):
+        try:
+            self.draft_message_info()
+        except Exception as e:
+            assert True
 
 #test open message
-    def test_OpenedMessage(self):
+    def test_zaa_OpenedMessage(self):
 
         URL_login = '/login/'
         payload_login = {
@@ -547,9 +583,13 @@ class ViewTest(unittest.TestCase):
             }
             r = self.client.post(URL, data=payload)
             URL = '/message/1'
-            URL = URL+"?delete"
+            URL = URL+"?delete=True"
             response = self.client.post(URL)
             URL = '/message/1'
             URL = URL + "?lottery=0"
             response = self.client.post(URL)
             assert response.status_code==200
+
+    def test_delete_message(self):
+        r = self.delete_message()
+        assert r is None
