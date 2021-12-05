@@ -22,13 +22,13 @@ class UserForm(FlaskForm):
     display = ['email', 'firstname', 'lastname', 'password', 'date_of_birth','nickname','location']
 
     # Checks if data_of_birth is left blank or is invalide date return false, else result
-    def validate_on_submit(self):
-        result = super(UserForm, self).validate()
-        print(str(self.date_of_birth.data)+"data")
-        if (self.date_of_birth.data is not None and self.date_of_birth.data>date.today()):
-            return False
-        else:
-            return result
+    # def validate_on_submit(self):
+    #     result = super(UserForm, self).validate()
+    #     print(str(self.date_of_birth.data)+"data")
+    #     if (self.date_of_birth.data is not None and self.date_of_birth.data>date.today()):
+    #         return False
+    #     else:
+    #         return result
 
 # Contains fields for the "send message" service
 class SendForm(FlaskForm):

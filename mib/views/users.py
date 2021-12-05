@@ -478,6 +478,7 @@ def profile():
             user_filter_list = json_response['filter']
 
             return render_template("profile_info.html", current_user=current_user,user_filter_list=user_filter_list)
+
         else: #if the user presses the other button he changes is information with the info in the form
             print("change info branch")
             payload = dict(new_password=new_password, firstname=firstname,
