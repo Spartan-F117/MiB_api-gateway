@@ -9,6 +9,7 @@ from mib.__init__ import app as TestedApp
 import io
 from flask_login import  current_user
 
+        
 
 
 LOGIN_OK = 200
@@ -120,6 +121,41 @@ class ViewTest(unittest.TestCase):
             
             assert True #True because the user could be just created
 
+#test wrong create
+    def test_wrong_create(self):
+        URL = '/create_user/'
+        payload = {
+            'email': 'example1@email.it',
+            'password': 'pass1',
+            'nickname': 'nick1',
+            'firstname': 'name1',
+            'lastname': 'last1',
+            'location': 'location1',
+            'date_of_birth': '1/01/2000'
+        }
+        r1 = self.client.post(URL, data=payload)
+        assert r1.status_code == 200
+
+    def test_wrong_create_2(self):
+        URL = '/login/'
+        payload = {
+            'email': 'example1@email.it',
+            'password': 'pass1'
+        }
+        r = self.client.post(URL, data=payload)
+        URL = '/create_user/'
+        payload = {
+            'email': 'example1@email.it',
+            'password': 'pass1',
+            'nickname': 'nick1',
+            'firstname': 'name1',
+            'lastname': 'last1',
+            'location': 'location1',
+            'date_of_birth': '1/01/2000'
+        }
+        r1 = self.client.post(URL, data=payload)
+        assert r1.status_code == 200
+
 #test login
 
 #1) login
@@ -149,7 +185,7 @@ class ViewTest(unittest.TestCase):
             'email': 'example1@email.it',
             'password': 'pass1'
         }
-        r1 = self.client.post(URL, data=payload)
+        self.client.post(URL, data=payload)
 
         r = self.client.post(URL, data=payload)
 
@@ -166,7 +202,20 @@ class ViewTest(unittest.TestCase):
 #test user
 
     #1) insert a user into blacklist
-    def test_y_add_blacklist(self):
+    def test_ya_add_blacklist(self):
+        URL_login = '/login/'
+        payload = {
+            'email': 'example1@email.it',
+            'password': 'pass1'
+        }
+        r1 = self.client.post(URL_login, data=payload)
+        URL = '/users/'
+        r = self.client.get(URL+'?block_user_id=2&block=1') #block user1
+        self.client.get(URL) #testing 36-66
+        assert True
+
+    #1) insert a user into blacklist again
+    def test_yb_add_blacklist_again(self):
         URL_login = '/login/'
         payload = {
             'email': 'example1@email.it',
@@ -207,6 +256,17 @@ class ViewTest(unittest.TestCase):
         r_login = self.client.post(URL_login, data=payload_login)
         URL = '/users/'
         r = self.client.get(URL+'?block_user_id=2&block=2') #report user1
+        assert True
+
+    def test_add_report_list_2(self):
+        URL_login = '/login/'
+        payload_login = {
+            'email': 'example1@email.it',
+            'password': 'pass1'
+        }
+        r_login = self.client.post(URL_login, data=payload_login)
+        URL = '/users/'
+        r = self.client.get(URL+'?block_user_id=100&block=2') #report user1
         assert True
 
 #test send
@@ -585,11 +645,46 @@ class ViewTest(unittest.TestCase):
             URL = '/message/1'
             URL = URL+"?delete=True"
             response = self.client.post(URL)
-            URL = '/message/1'
+            URL = '/message/2'
             URL = URL + "?lottery=0"
             response = self.client.post(URL)
             assert response.status_code==200
 
-    def test_delete_message(self):
+    def test_z_delete_message(self):
         r = self.delete_message()
         assert r is None
+
+    def test_za_delete_message_2(self):
+        URL_login = '/login/'
+        payload_login = {
+            'email': 'example2@email.it',
+            'password': 'pass2'
+        }
+        r_login = self.client.post(URL_login, data=payload_login)
+        URL = '/delete_messages/'
+        r = self.client.get(URL)
+        assert r.status_code == 200
+
+    def test_za_delete_message_3(self):
+        URL_login = '/login/'
+        payload_login = {
+            'email': 'example1@email.it',
+            'password': 'pass1'
+        }
+        r_login = self.client.post(URL_login, data=payload_login)
+        URL = '/delete_messages/'
+        r = self.client.get(URL)
+        assert r.status_code == 200
+
+    def test_lottery_get(self):
+        URL_login = '/login/'
+        payload_login = {
+            'email': 'example1@email.it',
+            'password': 'pass1'
+        }
+        r_login = self.client.post(URL_login, data=payload_login)
+        URL = '/lottery/'
+        r = self.client.get(URL)
+        assert r.status_code == 200
+
+        

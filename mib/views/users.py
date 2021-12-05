@@ -15,7 +15,7 @@ USERS_ENDPOINT = app.config['USERS_MS_URL']
 MESSAGE_ENDPOINT = app.config['MESSAGE_MS_URL']
 REQUESTS_TIMEOUT_SECONDS = 60
 
-POINT_NECESSARY = 1
+POINT_NECESSARY = 0
 
 def lottery_participant(id_user):
     payload = dict(id=str(id_user))
@@ -374,7 +374,7 @@ def create_user():
                     print("user created")
                     return redirect("/login")
                 # invalid creation
-                elif status == 203:
+                elif status == 202:
                     print("Invalid credential")
                     flash("invalid credential")
                     return render_template('create_user.html', form=form)
