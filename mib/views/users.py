@@ -15,8 +15,11 @@ USERS_ENDPOINT = app.config['USERS_MS_URL']
 MESSAGE_ENDPOINT = app.config['MESSAGE_MS_URL']
 REQUESTS_TIMEOUT_SECONDS = 60
 
-POINT_NECESSARY = 0
+POINT_NECESSARY = 0  # points are set to 0 for testing purpose
 
+
+# This method is used to send request to the lottery microservice
+# to check that the user is participant of the lottery or not
 def lottery_participant(id_user):
     payload = dict(id=str(id_user))
     try:
@@ -37,6 +40,9 @@ def lottery_participant(id_user):
         print(e)
 
 
+# This method is send request to lottery microservice when a user
+# apply for the monthly lottery. It will insert the user in the
+# lottery list if the user is not already a participant
 def send_partecipation_lottery(id_user):
     payload = dict(id=str(id_user))
     try:
@@ -59,6 +65,8 @@ def send_partecipation_lottery(id_user):
         print(e)
 
 
+# This method send request to user microservice
+# to add a user to the blacklist table
 def add_to_blacklist(owner_blocklist, user_in_blacklist):
     payload = dict(id_owner=owner_blocklist, id_to_insert=user_in_blacklist)
     try:
@@ -76,6 +84,8 @@ def add_to_blacklist(owner_blocklist, user_in_blacklist):
         print(e)
 
 
+# this method sends request to user microservice to remove
+# a user from the blacklist table
 def remove_to_blacklist(owner_blocklist, user_in_blacklist):
     payload = dict(id_owner=owner_blocklist, id_to_insert=user_in_blacklist)
     try:
@@ -90,6 +100,8 @@ def remove_to_blacklist(owner_blocklist, user_in_blacklist):
         print(e)
 
 
+# this method sends request to user microservice to
+# add a user to the reportlist 
 def add_to_reportlist(owner_reportlist, user_in_reportlist):
     payload = dict(id_owner=owner_reportlist, id_to_insert=user_in_reportlist)
     try:
@@ -104,6 +116,8 @@ def add_to_reportlist(owner_reportlist, user_in_reportlist):
         print(e)
 
 
+# this method sends request to message microservice
+# to send a message to another user
 def send_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image):
     
     print('trying sending message....')
@@ -123,6 +137,8 @@ def send_message(sender_id, sender_nickname, receiver_id, receiver_nickname, bod
     return 200
 
 
+# this method sends request to message microservice to
+# to save a message to the draft
 def draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image):
     
     print('trying drafting message....')
@@ -142,6 +158,8 @@ def draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, bo
     return 200
 
 
+# this method sends request to message microservice to
+# send a draft message to the receipent user
 def send_draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image, draft_id):
     
     print('trying sending draft message....')
@@ -161,6 +179,8 @@ def send_draft_message(sender_id, sender_nickname, receiver_id, receiver_nicknam
     return 200
 
 
+# this method sends request to message microservice to 
+# update the data of an existing draft message
 def update_draft_message(sender_id, sender_nickname, receiver_id, receiver_nickname, body, delivery_date, image, draft_id):
     
     print('trying updating draft message....')
@@ -180,6 +200,8 @@ def update_draft_message(sender_id, sender_nickname, receiver_id, receiver_nickn
     return 200
 
 
+# this method sends request to user microservice to 
+# get the list of all the users
 def retrive_users(id_):
 
     payload = dict(id=str(id_))
@@ -204,6 +226,8 @@ def retrive_users(id_):
         print(e)
 
 
+# this method sends request to user microservice to 
+# reterive a user by its nickname
 def get_user_by_nickname(nickname):
 
     print('trying receiving user id from nickname....')
@@ -225,6 +249,8 @@ def get_user_by_nickname(nickname):
     return user
 
 
+# this method sends request to message microservice
+# to delete a message by its id
 def delete_message(draft_id):
 
     print('trying deleting message....')
@@ -239,6 +265,8 @@ def delete_message(draft_id):
     print('received response for delete message....')
 
 
+# this method sends request to message microservice
+# to get the information about the draft message
 def draft_message_info(draft_id):
     print('trying receiving draft message info....')
 
@@ -255,6 +283,8 @@ def draft_message_info(draft_id):
     return json_payload
 
 
+# this method sends request to user microservice to
+# reterive the blacklist users for the current_user
 def blacklist_request(sender_id, receiver_id):
     print('trying receiving blacklist info....')
 
@@ -275,6 +305,8 @@ def blacklist_request(sender_id, receiver_id):
         return True
 
 
+# this method sends request to message microservice
+# to delete a received message
 def delete_received_message(id):
     print('trying deleting received message....')
 
@@ -290,6 +322,8 @@ def delete_received_message(id):
     return response.status_code
 
 
+# this method sends request to message microservice
+# to get the response for opening the message
 def open_received_message(id):
     print('trying opening received message....')
 
@@ -306,6 +340,8 @@ def open_received_message(id):
     return json_response['received_message']  
 
 
+# this method sends request to message microservice
+# to open a send_message (get send_message)
 def open_send_message(id):
     print('trying opening send message....')
 
@@ -322,6 +358,8 @@ def open_send_message(id):
     return json_response['send_message']
 
 
+# this method sends request to user microservice
+# to decrease the users lottery points
 def decrease_lottery_points(user_id):
     print('trying decreasing user lottery points....')
              
@@ -337,6 +375,7 @@ def decrease_lottery_points(user_id):
     return 200
 
 
+# This route is used to create a new user
 @users.route('/create_user/', methods=['POST', 'GET'])
 def create_user():
     '''
@@ -344,7 +383,8 @@ def create_user():
     '''
 
     form = UserForm()
-    if not (current_user is not None and hasattr(current_user, 'id')):  # check if the user is logged
+    # check if the user is logged or not
+    if not (current_user is not None and hasattr(current_user, 'id')):
         if form.is_submitted():  # take information from the Form
             email = form.data['email']
             firstname = form.data['firstname']
@@ -386,6 +426,7 @@ def create_user():
         return "You are currently logged in, you have to <a href=/logout>logout</a> first"
 
 
+# This route is used to show the list of users using the application
 @users.route('/users/', methods=['POST', 'GET'])
 @login_required
 def user():
@@ -397,7 +438,7 @@ def user():
     owner_blocklist = current_user.id
     user_in_blacklist = request.args.get("block_user_id")  # is the id of the user that he wants to block (it could be put in the URL)
 
-    # chek if in the URL there is the id of the user to block
+    # check if in the URL there is the id of the user to block
     if user_in_blacklist is not None:
         # put user in the blacklist
         if request.args.get("block") == "1":  # is a parameter that could be in the URL to identify the blacklist action
@@ -406,6 +447,7 @@ def user():
         # remove user from the blacklist
         elif request.args.get("block") == "0":
             remove_to_blacklist(str(owner_blocklist), str(user_in_blacklist))
+        # put user in the reportlist
         else:
             owner_reportlist = current_user.id
             user_in_reportlist = request.args.get("block_user_id")
@@ -431,6 +473,7 @@ def user():
     #   return redirect('/login')
 
 
+# This route shows the users profile page
 @users.route('/profile', methods=['GET','POST'])
 @login_required
 def profile():
@@ -504,8 +547,7 @@ def profile():
             return render_template("profile_info.html", current_user=current_user, user_filter_list=user_filter_list)
 
 
-
-# This route is to delete an account
+# This route is used to delete an account
 @users.route('/deleteAccount/', methods=['POST', 'GET'])
 @login_required
 def delete_account():
@@ -540,6 +582,7 @@ def delete_account():
     return render_template("delete.html")
 
 
+# This route is used to show calendar.html page
 @users.route('/calendar')
 @login_required
 def calendar():
@@ -588,15 +631,14 @@ def calendar():
 @users.route('/mailbox/', methods=['GET'])
 @login_required
 def inbox():
-    # '''
-    #  Shows the mailbox of the user divded into three parts
-    #  1) The Inbox part shows the received messages
-    #  2) The Sent part shows the messages that user sent
-    #  3) The Draft part shows the messages in the draft
-    #
-    #  It also provides the functionality for the user to delete future
-    #  messages if the user is lottery winner
-    # '''
+    '''
+        Shows the mailbox of the user divded into three parts
+        1) The Inbox part shows the received messages
+        2) The Sent part shows the messages that user sent
+        3) The Draft part shows the messages in the draft
+        It also provides the functionality for the user to delete future
+        messages if the user is lottery winner
+    '''
     
 
     # look for filter
@@ -644,14 +686,15 @@ def inbox():
         print(e)
    
 
+# This route shows send message page (send.html)
 @users.route('/send/', methods=['GET','POST'])
 @login_required  
 def send():
-    isDraft =False                                                  # The message by default is set as "NOT A DRAFT"
-    draftReciever = request.args.get("reciever")                    # take argument "reciever"
-    draftBody = request.args.get("body")                            # take argument "body"
-    isReply = request.args.get("reply")                             # take arument reply
-    draft_id = request.args.get('draft_id')                         # # take argument "draft_id"
+    isDraft =False  # The message by default is set as "NOT A DRAFT"
+    draftReciever = request.args.get("reciever")   # take argument "reciever"
+    draftBody = request.args.get("body")           # take argument "body"
+    isReply = request.args.get("reply")            # take arument reply
+    draft_id = request.args.get('draft_id')        # take argument "draft_id"
     form = SendForm()
     if request.method == 'POST':
         if form.data is not None and form.data['recipient'] is not None: #check if the receiver is None
@@ -714,7 +757,7 @@ def send():
                 dictUS[draftReciever] = 1
             return render_template("send.html",  current_user=current_user, current_user_firstname=current_user.firstname, form=form, user_list=dictUS, is_submitted=True)
     else:
-        #show the form and fill it if it's to modify a draft message
+        # show the form and fill it if it's to modify a draft message
         
         form.body.data=draftBody
         result = retrive_users(current_user.id)
@@ -737,6 +780,11 @@ def send():
         return render_template("send.html", current_user=current_user, current_user_firstname=current_user.firstname, form=form, user_list=dictUS, draft_id=draft_id), 200
        
 
+'''
+This route is used to show the message.html page.
+The page show send and received messages and also
+can delete a message by its id.
+'''
 @users.route("/message/<id>", methods=["GET", "POST"])
 @login_required  
 def message_view(id):
@@ -771,6 +819,7 @@ def message_view(id):
             	    return 'You can\'t read this message!'
 
 
+# This route is used to show the lottery page
 @users.route('/lottery/', methods=['GET', 'POST'])
 @login_required
 def lottery():
@@ -778,6 +827,7 @@ def lottery():
     participant = lottery_participant(current_user.id)
 
     if request.method == "POST":
+        # add the user to the participent list
         if not participant:
             send_partecipation_lottery(current_user.id)
             flash("You're participating to the lottery!")
@@ -785,10 +835,18 @@ def lottery():
         else:
             flash("You're already participating to the lottery!")
             return redirect("/profile")
+    # show page
     elif request.method == "GET":
         return render_template("lottery.html", is_partecipating=participant)
 
 
+'''
+This route shows the delete messages page to the 
+user who is the winner of the monthly lottery if
+the user has enough lottery points. The user can 
+delete a future message and it will not be
+receieved by the receipent user
+'''
 @users.route('/delete_messages/')
 @login_required
 def delete_messages():

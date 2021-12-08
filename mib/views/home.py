@@ -13,6 +13,7 @@ MESSAGE_ENDPOINT = ""
 home = Blueprint('home', __name__)
 
 
+# This is the home route. It will redirect the user to mailbox.html page
 @home.route('/', methods=['GET'])
 def index():
     return redirect("/mailbox")
