@@ -1,0 +1,13 @@
+FOR TESTING
+    for run test you need to:
+        - For the microservices:
+            -delete the db.sqlite files (if any)
+            -source venv/venv/bin/activate
+            -export FLASK_ENV=development
+            -flask db migrate -m "db_changes"
+            -flask db upgrade
+            -bash run.sh
+        - For the gateway:
+            - run command: export FLASK_ENV=testing
+            - run command: python -m install Faker (if not installed)
+            - run command: python -m pytest --cov-config .coveragerc --cov=mib --cov-report term-missing
