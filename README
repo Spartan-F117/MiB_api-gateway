@@ -10,4 +10,4 @@ FOR TESTING
         - For the gateway:
             - run command: export FLASK_ENV=testing
             - run command: python -m install Faker (if not installed)
-            - run command: python -m pytest --cov-config .coveragerc --cov=mib --cov-report term-missing
+            - run command: python -m pytest --cov-config .coverageset --cov=mib --cov-report term-missing
