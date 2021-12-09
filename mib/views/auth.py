@@ -17,6 +17,7 @@ REQUESTS_TIMEOUT_SECONDS = 60
 USERS_ENDPOINT = app.config['USERS_MS_URL']
 
 
+# This is the method to send the logout request to the user microservice
 def send_logout_request(user_email):
     
     print('trying logout user....')
@@ -31,8 +32,11 @@ def send_logout_request(user_email):
     print('received response for logout user ....')
 
 
-# This is the route to do the login, in the login.html page there is a form and the information
-# that are put in the form are cheked in the db and the is_active flag in the db is put equal to True
+'''
+This is the route to do the login, in the login.html page there is a form
+and the information that are put in the form are cheked in the db and the
+is_active flag in the db is put equal to True
+'''
 @auth.route('/login/', methods=['GET', 'POST'])
 def login(re=False):
     form = LoginForm()
@@ -66,12 +70,14 @@ def login(re=False):
             return "HTTP timeout"
     return render_template('login.html', form=form, re_login=re)
 
+# This is the route to do the relogin
 @auth.route('/relogin')
 def re_login():
     """Method that is being called after the user's session is expired.
     """
     return login(re=True)
 
+# This is the route to do the logout
 @auth.route('/logout')
 @login_required
 def logout():
