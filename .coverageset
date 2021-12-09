@@ -1,0 +1,15 @@
+[run]
+branch = True
+omit =
+    */migrations/*
+    *__init__.py*
+    */settings/*
+    *wsgi.py*
+
+[report]
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    pragma: no cover
+    try:
+    except Exception as e:
+    flash
